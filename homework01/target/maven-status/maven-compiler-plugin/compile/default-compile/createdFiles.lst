@@ -1,0 +1,14 @@
+ru\otus\vivlev\dao\QuestionDao.class
+ru\otus\vivlev\domain\Question.class
+ru\otus\vivlev\domain\AnswerOption.class
+ru\otus\vivlev\Main.class
+ru\otus\vivlev\service\QuestionServiceImpl.class
+ru\otus\vivlev\service\IOService.class
+ru\otus\vivlev\dao\QuestionDaoCsv.class
+ru\otus\vivlev\service\TestProcessImpl.class
+ru\otus\vivlev\config\AppConfig.class
+ru\otus\vivlev\service\ConsoleIOService.class
+ru\otus\vivlev\config\AppProperties.class
+ru\otus\vivlev\domain\TestResult.class
+ru\otus\vivlev\service\QuestionService.class
+ru\otus\vivlev\service\TestProcess.class
