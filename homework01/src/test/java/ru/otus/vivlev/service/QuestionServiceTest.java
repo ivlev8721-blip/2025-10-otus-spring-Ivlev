@@ -2,7 +2,6 @@ package ru.otus.vivlev.service;
 
 import org.junit.Before;
 import org.junit.Test;
-import ru.otus.vivlev.config.AppProperties;
 import ru.otus.vivlev.dao.QuestionDao;
 import ru.otus.vivlev.domain.AnswerOption;
 import ru.otus.vivlev.domain.Question;
@@ -23,11 +22,7 @@ public class QuestionServiceTest {
     public void setUp() {
         ioService = mock(IOService.class);
         QuestionDao questionDao = mock(QuestionDao.class);
-        AppProperties appProperties = mock(AppProperties.class);
         testProcess = mock(TestProcess.class);
-
-        when(appProperties.getQuestionsCount()).thenReturn(2);
-        when(appProperties.getPassCount()).thenReturn(1);
 
         List<AnswerOption> options1 = List.of(
                 new AnswerOption("Option 1", false),
@@ -43,7 +38,7 @@ public class QuestionServiceTest {
         ));
         when(questionDao.findAll()).thenReturn(questions);
         // Создаем spy и мокируем getShuffledQuestions, чтобы отключить shuffle
-        QuestionServiceImpl realService = new QuestionServiceImpl(questionDao, appProperties, ioService, testProcess);
+        QuestionServiceImpl realService = new QuestionServiceImpl(questionDao, ioService, testProcess, 2, 1, false);
         questionService = spy(realService);
         doReturn(questions).when(questionService).getShuffledQuestions();
     }

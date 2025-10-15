@@ -6,11 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-import ru.otus.vivlev.config.AppConfig;
-import ru.otus.vivlev.config.AppProperties;
-import ru.otus.vivlev.dao.QuestionDaoCsv;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -19,8 +15,7 @@ import java.io.PrintStream;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {AppConfig.class})
-@TestPropertySource("classpath:application-test.properties")
+@ContextConfiguration(locations = {"classpath:spring-context.xml"})
 public class QuestionServiceIntegrationTest {
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
@@ -28,7 +23,7 @@ public class QuestionServiceIntegrationTest {
     private final java.io.InputStream originalIn = System.in;
 
     @Autowired
-    private AppProperties appProperties;
+    private QuestionService questionService;
 
     @Before
     public void setUpStreams() {
@@ -43,23 +38,20 @@ public class QuestionServiceIntegrationTest {
 
     @Test
     public void integrationTest_shouldPassTestFlow() {
-        // Подготовка ввода пользователя (фамилия, имя, ответы)
-        String userInput = "Ivanov\nIvan\n2\n1\n";
+        // Подготовка ввода пользователя (фамилия, имя, ответы для всех 5 вопросов)
+        // Вопросы и правильные варианты из resources/questions.csv: правильный ответ всегда первый (индекс 1)
+        String userInput = "Ivanov\nIvan\n1\n1\n1\n1\n1\n";
         ByteArrayInputStream inContent = new ByteArrayInputStream(userInput.getBytes());
         System.setIn(inContent);
 
-        QuestionDaoCsv questionDao = new QuestionDaoCsv(appProperties.getQuestionsFile());
-        IOService ioService = new ConsoleIOService();
-        TestProcess testProcess = new TestProcessImpl(ioService);
-        QuestionServiceImpl service = new QuestionServiceImpl(questionDao, appProperties, ioService, testProcess);
-
-        // Запуск теста
-        service.printQuestions();
+        // Запуск теста через XML-контекстный бин
+        questionService.printQuestions();
 
         String output = outContent.toString();
-        assertTrue(output.contains("Test Question 1"));
-        assertTrue(output.contains("Option 1"));
-        assertTrue(output.contains("Option B"));
+        // Проверяем, что первый вопрос и вариант ответа присутствуют
+        assertTrue(output.contains("1. What does Spring manage?"));
+        assertTrue(output.contains("  1. Beans"));
+        // Проверяем, что итог пройден
         assertTrue(output.contains("Test passed"));
     }
 }

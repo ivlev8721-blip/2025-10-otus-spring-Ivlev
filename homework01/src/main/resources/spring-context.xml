@@ -1,17 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="
            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+           ">
 
-    <!-- Сканируем компоненты (@Service) только в пакете сервисов -->
-    <context:component-scan base-package="ru.otus.vivlev.service"/>
+    <!-- Подстановка значений из application.properties -->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:application.properties"/>
+    </bean>
 
-    <!-- Имя ресурса CSV захардкожено строкой в XML -->
+    <!-- Бины приложения -->
+    <bean id="ioService" class="ru.otus.vivlev.service.ConsoleIOService"/>
+
     <bean id="questionDao" class="ru.otus.vivlev.dao.QuestionDaoCsv">
-        <constructor-arg value="questions.csv"/>
+        <constructor-arg value="${questions.file}"/>
+    </bean>
+
+    <bean id="testProcess" class="ru.otus.vivlev.service.TestProcessImpl">
+        <constructor-arg ref="ioService"/>
+    </bean>
+
+    <bean id="questionService" class="ru.otus.vivlev.service.QuestionServiceImpl">
+        <constructor-arg ref="questionDao"/>
+        <constructor-arg ref="ioService"/>
+        <constructor-arg ref="testProcess"/>
+        <constructor-arg value="${questions.count}"/>
+        <constructor-arg value="${questions.pass-count}"/>
+        <constructor-arg value="${app.shuffle-questions}"/>
     </bean>
 
 </beans>

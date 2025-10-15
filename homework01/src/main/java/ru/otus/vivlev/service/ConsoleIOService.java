@@ -1,11 +1,13 @@
 package ru.otus.vivlev.service;
 
 import org.springframework.stereotype.Service;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
 
 @Service
 public class ConsoleIOService implements IOService {
-    private final Scanner scanner = new Scanner(System.in);
+    private BufferedReader reader;
 
     @Override
     public void print(String s) {
@@ -19,6 +21,14 @@ public class ConsoleIOService implements IOService {
 
     @Override
     public String readLine() {
-        return scanner.nextLine();
+        // Ленивая инициализация BufferedReader после возможной подмены System.in в тестах
+        try {
+            if (reader == null) {
+                reader = new BufferedReader(new InputStreamReader(System.in));
+            }
+            return reader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read from input", e);
+        }
     }
 }
