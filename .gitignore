@@ -25,3 +25,4 @@ replay_pid*
 /.idea/
 /homework01/.idea/
 /homework01/target/
+/homework01/dependency-reduced-pom.xml
