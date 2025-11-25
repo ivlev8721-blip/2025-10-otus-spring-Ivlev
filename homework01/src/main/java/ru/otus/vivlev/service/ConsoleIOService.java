@@ -1,6 +1,7 @@
 package ru.otus.vivlev.service;
 
 import org.springframework.stereotype.Service;
+
 import java.util.Scanner;
 
 @Service
