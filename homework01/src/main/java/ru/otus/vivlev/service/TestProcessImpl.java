@@ -14,36 +14,30 @@ public class TestProcessImpl implements TestProcess {
     private final IOService ioService;
 
     /**
-     * Проводит тестирование студента и возвращает результат
+     * Проводит тестирование: задает вопросы, собирает ответы, возвращает результат.
      */
     @Override
     public TestResult run(String lastName, String firstName, List<Question> questions) {
         int correctAnswers = 0;
-
-        // Задаем все вопросы по очереди и считаем правильные ответы
         for (int i = 0; i < questions.size(); i++) {
             if (askAndCheckQuestion(questions.get(i), i)) {
                 correctAnswers++;
             }
         }
-
-        // Создаем результат теста: ФИО + количество правильных/всего вопросов
         return new TestResult(lastName, firstName, correctAnswers, questions.size());
     }
 
     private boolean askAndCheckQuestion(Question question, int idx) {
-        // Показываем вопрос и варианты ответов
+        // Выводит текст вопроса и варианты ответа на консоль
         printQuestion(question, idx);
-
         int answerIndex = -1;
         boolean validInput = false;
-
-        // Просим ввести ответ пока не получим правильное число
+        // Ввод повторяется, пока не будет введено положительное число.
         while (!validInput) {
             ioService.print("Your answer: ");
             String answer = ioService.readLine();
             try {
-                answerIndex = Integer.parseInt(answer.trim()) - 1; // Преобразуем в индекс (начинается с 0)
+                answerIndex = Integer.parseInt(answer.trim()) - 1;
                 if (answerIndex < 0) {
                     ioService.println("Please enter a positive number!");
                 } else {
@@ -53,20 +47,16 @@ public class TestProcessImpl implements TestProcess {
                 ioService.println("Please enter a valid number!");
             }
         }
-
-        // Проверяем правильность ответа:
-        // - ответ должен быть в пределах списка вариантов
-        // - выбранный вариант должен быть помечен как правильный
+        // Проверяет, что индекс в допустимых границах и выбранный вариант помечен как правильный
         return answerIndex < question.getAnswerOptions().size()
                 && question.getAnswerOptions().get(answerIndex).isCorrect();
     }
 
     private void printQuestion(Question question, int idx) {
-        // Выводим номер вопроса и его текст
+        // Печатаем номер и текст вопроса
         ioService.println((idx + 1) + ". " + question.getText());
-
-        // Выводим все варианты ответов с номерами
         List<AnswerOption> opts = question.getAnswerOptions();
+        // Перебираем и печатаем все варианты ответа с их номерами
         for (int j = 0; j < opts.size(); j++) {
             ioService.println("  " + (j + 1) + ". " + opts.get(j).getText());
         }

@@ -20,24 +20,21 @@ public class QuestionDaoCsv implements QuestionDao {
 
     @Override
     public List<Question> findAll() {
-        // Открываем CSV файл из папки resources
+        // Открываем ресурс как поток ввода и оборачиваем в BufferedReader
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resourceName);
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-
-            // Читаем файл построчно и преобразуем в список вопросов
+            // Читаем все строки файла, разбираем каждую строку в массив токенов,
+            // фильтруем пустые строки, создаём объекты Question
             return reader.lines()
-                    .map(line -> line.split(",")) // Разделяем строку на части по запятым
-                    .filter(tokens -> tokens.length > 0) // Пропускаем пустые строки
+                    .map(line -> line.split(",")) // разбиваем строку по запятым
+                    .filter(tokens -> tokens.length > 0) // пропускаем пустые строки
                     .map(tokens -> {
-                        // Первая часть - текст вопроса, остальные - варианты ответов
                         String questionText = tokens[0];
                         List<AnswerOption> options =
                                 Arrays.stream(Arrays.copyOfRange(tokens, 1, tokens.length))
                                         .map(optionToken -> {
-                                            // Вариант ответа в формате "текст:true" или "текст:false"
                                             String[] parts = optionToken.split(":");
                                             String text = parts[0];
-                                            // Если есть двоеточие, берем признак правильности ответа
                                             boolean correct = parts.length > 1 && Boolean.parseBoolean(parts[1]);
                                             return new AnswerOption(text, correct);
                                         })
@@ -46,7 +43,7 @@ public class QuestionDaoCsv implements QuestionDao {
                     })
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            // Если файл не найден или ошибка чтения - бросаем исключение
+            // В случае ошибки выбрасываем RuntimeException
             throw new RuntimeException("Failed to read questions from resource: " + resourceName, e);
         }
     }

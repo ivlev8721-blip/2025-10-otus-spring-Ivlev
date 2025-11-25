@@ -18,5 +18,5 @@
    ```
 2. Run the application:
    ```sh
-   java -jar homework01/target/student-testing-1.0-SNAPSHOT.jar
+   java -jar target/student-testing-1.0-SNAPSHOT.jar
    ```

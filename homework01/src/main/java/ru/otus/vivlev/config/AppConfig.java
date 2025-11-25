@@ -12,21 +12,12 @@ import ru.otus.vivlev.dao.QuestionDaoCsv;
 @PropertySource("classpath:application.properties")
 @ComponentScan("ru.otus.vivlev")
 public class AppConfig {
-
-    /**
-     * Создает объект для работы с вопросами из CSV файла
-     * Spring автоматически передаст настройки из application.properties
-     */
     @Bean
     public QuestionDao questionDao(AppProperties appProperties) {
         return new QuestionDaoCsv(appProperties.getQuestionsFile());
     }
-
-    /**
-     * Включает поддержку подстановки значений из application.properties
-     * в аннотации @Value (например: @Value("${questions.file}"))
-     * static нужен чтобы этот бин создался самым первым
-     */
+    // Этот бин необходим для поддержки аннотаций @Value
+    // Позволяет Spring подставлять значения из application.properties
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertyConfig() {
         return new PropertySourcesPlaceholderConfigurer();

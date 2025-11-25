@@ -1,57 +1,63 @@
 package ru.otus.vivlev.service;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import ru.otus.vivlev.config.AppProperties;
+import ru.otus.vivlev.dao.QuestionDaoCsv;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration(locations = {"classpath:spring-context.xml"})
-public class QuestionServiceIntegrationTest {
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = ru.otus.vivlev.config.AppConfig.class)
+@TestPropertySource("classpath:application-test.properties")
+class QuestionServiceIntegrationTest {
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
     private final PrintStream testOut = new PrintStream(outContent);
     private final java.io.InputStream originalIn = System.in;
 
     @Autowired
-    private QuestionService questionService;
+    private AppProperties appProperties;
 
-    @Before
-    public void setUpStreams() {
+    @BeforeEach
+    void setUpStreams() {
         System.setOut(testOut);
     }
 
-    @After
-    public void restoreStreams() {
+    @AfterEach
+    void restoreStreams() {
         System.setOut(originalOut);
         System.setIn(originalIn);
     }
 
     @Test
-    public void integrationTest_shouldPassTestFlow() {
-        // Подготовка ввода пользователя (фамилия, имя, ответы для всех 5 вопросов)
-        // Вопросы и правильные варианты из resources/questions.csv: правильный ответ всегда первый (индекс 1)
-        String userInput = "Ivanov\nIvan\n1\n1\n1\n1\n1\n";
+    void integrationTest_shouldPassTestFlow() {
+        String userInput = "Ivanov\nIvan\n2\n1\n";
         ByteArrayInputStream inContent = new ByteArrayInputStream(userInput.getBytes());
         System.setIn(inContent);
 
-        // Запуск теста через XML-контекстный бин
-        questionService.printQuestions();
+        QuestionDaoCsv questionDao = new QuestionDaoCsv(appProperties.getQuestionsFile());
+        IOService ioService = new ConsoleIOService();
+        TestProcess testProcess = new TestProcessImpl(ioService);
+        QuestionServiceImpl service = new QuestionServiceImpl(questionDao, appProperties, ioService, testProcess);
+
+        service.printQuestions();
 
         String output = outContent.toString();
-        // Проверяем, что первый вопрос и вариант ответа присутствуют
-        assertTrue(output.contains("1. What does Spring manage?"));
-        assertTrue(output.contains("  1. Beans"));
-        // Проверяем, что итог пройден
-        assertTrue(output.contains("Test passed"));
+        assertThat(output)
+            .contains("Test Question 1")
+            .contains("Option 1")
+            .contains("Option B")
+            .contains("Test passed");
     }
 }
