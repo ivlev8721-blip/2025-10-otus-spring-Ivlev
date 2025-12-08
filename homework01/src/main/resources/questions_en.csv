@@ -1,5 +1,0 @@
-What does Spring manage?,Beans:true,Controllers:false,Tables:false
-Which language is Spring written for?,Java:true,Python:false,PHP:false
-IoC means Inversion of Control?,Yes:true,No:false,Maybe:false
-Bean is an object?,Yes:true,No:false
-Spring creates beans?,Yes:true,No:false
