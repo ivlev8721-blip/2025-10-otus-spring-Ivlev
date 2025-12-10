@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ApplicationJPA {
+public class  ApplicationJDBC {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ApplicationJPA.class, args);
+		SpringApplication.run(ApplicationJDBC.class, args);
 	}
 }

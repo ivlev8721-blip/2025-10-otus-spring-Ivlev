@@ -1,88 +1,114 @@
 package ru.otus.vivlev.library.shell;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.shell.Availability;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
-import org.springframework.shell.standard.ShellMethodAvailability;
 import org.springframework.shell.standard.ShellOption;
+import ru.otus.vivlev.library.domain.Author;
 import ru.otus.vivlev.library.domain.Book;
-import ru.otus.vivlev.library.domain.Comment;
-import ru.otus.vivlev.library.service.*;
-import ru.otus.vivlev.library.service.ShellService;
+import ru.otus.vivlev.library.domain.Genre;
+import ru.otus.vivlev.library.exception.BookRemoveException;
+import ru.otus.vivlev.library.service.AuthorService;
+import ru.otus.vivlev.library.service.BookService;
+import ru.otus.vivlev.library.service.GenreService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @ShellComponent
-@RequiredArgsConstructor
 public class LibraryShell {
 
+    public static final String ADDED_SUCCESSFULLY = "The book added successfully";
+    public static final String UPDATED_SUCCESSFULLY = "The book updated successfully";
     public static final String DELETE_SUCCESSFULLY = "The book deleted successfully";
 
-    private final ShellService shellService;
+    private final BookService bookService;
 
-    private Boolean isAuth = false;
+    private final AuthorService authorService;
 
-    private String userLogin;
+    private final GenreService genreService;
 
-    @ShellMethod(key = {"a", "auth"}, value = "For authorization enter login: a \"login\"")
-    public void auth(
-            @ShellOption String login
-    ) {
-        isAuth = true;
-        userLogin = login;
+    public LibraryShell(BookService bookService, AuthorService authorService, GenreService genreService) {
+        this.bookService = bookService;
+        this.authorService = authorService;
+        this.genreService = genreService;
     }
 
     @ShellMethod(key = {"books", "b"}, value = "Display the list of all books: <ID>, <Title>, <Author>, List<Genre>")
-    @ShellMethodAvailability(value = "isAuthUser")
     public List<Book> displayAllBooks() {
-        return shellService.findAllBook();
+        return bookService.getAll();
     }
 
     @ShellMethod(key = {"add-book", "add-b"}, value = "Add a book to library: add-b \"Title\" \"Author\" \"Genre1, Genre2, etc.\"")
-    @ShellMethodAvailability(value = "isAuthUser")
     public String addBook(@ShellOption String bookTitle,
                           @ShellOption String authorName,
                           @ShellOption String genres) {
-        return shellService.saveBook(null, bookTitle, authorName, genres).toString();
+        return saveOrUpdateBook(0, bookTitle, authorName, genres);
     }
 
     @ShellMethod(key = {"update-book", "upd-b"}, value = "Edit a book by ID: upd-b ID \"Title\" \"Author\" \"Genre1, Genre2\" (Author and Genre are optional)")
-    @ShellMethodAvailability(value = "isAuthUser")
     public String updateBook(@ShellOption long id,
                              @ShellOption String bookTitle,
                              @ShellOption(defaultValue = "") String authorName,
                              @ShellOption(defaultValue = "") String genres) {
-        return shellService.saveBook(id, bookTitle, authorName, genres).toString();
+        return saveOrUpdateBook(id, bookTitle, authorName, genres);
     }
 
     @ShellMethod(key = {"delete-book", "del-b"}, value = "Remove a book from library by ID:del-b ID")
-    @ShellMethodAvailability(value = "isAuthUser")
-    public String deleteBook(@ShellOption Long id) {
-        shellService.deleteBookByID(id);
+    public String deleteBook(@ShellOption long id) throws BookRemoveException {
+        bookService.deleteById(id);
         return DELETE_SUCCESSFULLY;
     }
 
-    @ShellMethod(key = {"create-comment", "cc"}, value = "Create comment: cc ID \"Your comment\"")
-    @ShellMethodAvailability(value = "isAuthUser")
-    public void createComment(
-            @ShellOption Long bookId,
-            @ShellOption String text
-    ) {
-        shellService.saveComment(bookId, userLogin, text);
-    }
+    private String saveOrUpdateBook(long id, String bookTitle, String authorName, String genres) {
+        String result = ADDED_SUCCESSFULLY;
+        List<Genre> genresForSave = getGenres(genres);
+        Author author = getAuthor(authorName);
+        if (id != 0) {
+            Optional<Book> book = bookService.getById(id);
+            if (book.isPresent()) {
+                if (genresForSave.isEmpty()) {
+                    genresForSave = book.get().getGenres();
+                }
 
-    @ShellMethod(key = {"get-all-comment-by-book-id", "gac"}, value = "gac ID. Display the list of all comments: <ID>, <User>, <Text>, book_id")
-    @ShellMethodAvailability(value = "isAuthUser")
-    public List<Comment> findAllCommentByBookId(@ShellOption Long bookId) {
-        return shellService.getAllCommentByBookID(bookId);
-    }
-
-    private Availability isAuthUser() {
-        if (!isAuth) {
-            return Availability.unavailable("Please log in!");
+                if (author.getId() == 0) {
+                    author = book.get().getAuthor();
+                }
+            }
+            bookService.update(new Book(id, bookTitle, author, genresForSave));
+            result = UPDATED_SUCCESSFULLY;
         } else {
-            return Availability.available();
+            bookService.save(new Book(bookTitle, author, genresForSave));
         }
+        return result;
+    }
+
+    private List<Genre> getGenres(String genres) {
+        List<Genre> genresForSave = new ArrayList<>();
+        if (!genres.isEmpty()) {
+            String[] genresArr = genres.replaceAll(" ", "").split(",");
+            for (String genreName : genresArr) {
+                Optional<Genre> genre = genreService.getByName(genreName);
+                if (genre.isPresent()) {
+                    genresForSave.add(genre.get());
+                } else {
+                    genresForSave.add(genreService.save(new Genre(genreName)));
+                }
+            }
+        }
+        return genresForSave;
+    }
+
+    private Author getAuthor(String authorName) {
+        Author author = new Author(0, "");
+        if (!authorName.isEmpty()) {
+            Optional<Author> authorFromDB = authorService.getByName(authorName);
+            if (authorFromDB.isEmpty()) {
+                author = authorService.save(new Author(authorName));
+            } else {
+                author = authorFromDB.get();
+            }
+        }
+        return author;
     }
 }

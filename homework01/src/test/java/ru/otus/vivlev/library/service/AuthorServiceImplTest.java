@@ -5,27 +5,30 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import ru.otus.vivlev.library.domain.Author;
-import ru.otus.vivlev.library.repository.AuthorRepository;
+import ru.otus.vivlev.library.repository.AuthorJdbc;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
+import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFORE_METHOD;
 
 @DisplayName("The AuthorServiceImpl class")
 @SpringBootTest
 class AuthorServiceImplTest {
 
-    private static final long AUTHOR_ID_1 = 1;
-    private static final long AUTHOR_ID_2 = 2;
-    private static final String GARRISSON = "Гаррисон, Г.";
-    private static final String PERUMOV = "Перумов, Н.";
-    private static final String NEW_AUTHOR = "Лукьяненко, С.";
+    public static final int ZERO_ID = 0;
+    public static final int AUTHOR_ID_1 = 1;
+    public static final int AUTHOR_ID_2 = 2;
+    public static final String GARRISSON = "Гаррисон, Г.";
+    public static final String PERUMOV = "Перумов, Н.";
+    public static final String NEW_AUTHOR = "Лукьяненко, С.";
 
     @MockBean
-    private AuthorRepository authorRepository;
+    private AuthorJdbc authorJdbc;
 
     @Autowired
     private AuthorService authorService;
@@ -35,7 +38,7 @@ class AuthorServiceImplTest {
     void checkingGetById() {
         Author expectedAuthor = new Author(AUTHOR_ID_1, GARRISSON);
 
-        doReturn(Optional.of(expectedAuthor)).when(authorRepository).getById(AUTHOR_ID_1);
+        doReturn(Optional.of(expectedAuthor)).when(authorJdbc).getById(AUTHOR_ID_1);
         Author actualAuthor = authorService.getById(AUTHOR_ID_1).get();
 
         assertThat(actualAuthor).usingRecursiveComparison().isEqualTo(expectedAuthor);
@@ -43,11 +46,12 @@ class AuthorServiceImplTest {
 
     @DisplayName("is checking getAll method.")
     @Test
+    @DirtiesContext(methodMode = BEFORE_METHOD)
     void checkingGetAll() {
         Author author1 = new Author(AUTHOR_ID_1, GARRISSON);
         Author author2 = new Author(AUTHOR_ID_2, PERUMOV);
         List<Author> list = List.of(author1, author2);
-        doReturn(list).when(authorRepository).getAll();
+        doReturn(list).when(authorJdbc).getAll();
 
         List<Author> actList = authorService.getAll();
 
@@ -57,13 +61,10 @@ class AuthorServiceImplTest {
     @DisplayName("is checking save method.")
     @Test
     void checkingSave() {
-        Author expectedAuthor = new Author(null, NEW_AUTHOR);
-        Author persisted = new Author(AUTHOR_ID_2, NEW_AUTHOR);
-        doReturn(persisted).when(authorRepository).save(expectedAuthor);
-
+        Author expectedAuthor = new Author(AUTHOR_ID_2, NEW_AUTHOR);
+        doReturn(expectedAuthor).when(authorJdbc).save(expectedAuthor);
         Author actualAuthor = authorService.save(expectedAuthor);
-
-        assertThat(actualAuthor.getId()).isNotNull().isEqualTo(AUTHOR_ID_2);
-        assertThat(actualAuthor.getFullName()).isEqualTo(NEW_AUTHOR);
+        assertThat(actualAuthor.getId()).isGreaterThan(ZERO_ID);
+        assertThat(actualAuthor.getFullName()).isEqualTo(expectedAuthor.getFullName());
     }
 }
