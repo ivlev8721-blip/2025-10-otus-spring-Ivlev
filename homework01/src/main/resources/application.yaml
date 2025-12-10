@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:librarydb
+    username: sa
+    password: sa
+    schema: schema.sql
+    data: data.sql
+    initialization-mode: always
+
+  h2:
+    console:
+      path: /h2-console
+      settings:
+        web-allow-others: true
