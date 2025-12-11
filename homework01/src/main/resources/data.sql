@@ -1,0 +1,13 @@
+insert into author (full_name) values ('Гаррисон, Г.');
+insert into author (full_name) values ('Перумов, Н.');
+insert into genre (genre_name) values ('Фантастика');
+insert into genre (genre_name) values ('Фентези');
+insert into book (title, author_id) values ('Стальная крыса идет на войну', 1);
+insert into book (title, author_id) values ('Стальная крыса спасает мир', 1);
+insert into book (title, author_id) values ('Не время для драконов', 2);
+insert into book_genre  (book_id, genre_id) values (1, 1);
+insert into book_genre  (book_id, genre_id) values (2, 1);
+insert into book_genre  (book_id, genre_id) values (3, 2);
+insert into comment (user_name, text, book_id) values ('ADMIN', 'Классная книга, рекомендую!', 1);
+insert into comment (user_name, text, book_id) values ('ADMIN', 'Прочитал в один заход!', 1);
+insert into comment (user_name, text, book_id) values ('User', 'Редкая тягомутина! Сжечь!', 3);
