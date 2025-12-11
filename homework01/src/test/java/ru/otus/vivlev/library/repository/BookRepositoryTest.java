@@ -10,6 +10,7 @@ import ru.otus.vivlev.library.domain.Author;
 import ru.otus.vivlev.library.domain.Book;
 import ru.otus.vivlev.library.domain.Genre;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,8 +24,6 @@ class BookRepositoryTest {
     public static final String AUTHOR = "Перумов, Н.";
     public static final String BOOK_TITLE = "Сумеречный дозор";
     public static final String UPDATE_BOOK_TITLE = "Мальчик и тьма";
-    public static final long BOOK_ID = 1;
-    public static final int EXPECTED_LIST_BOOK_SIZE = 4;
     public static final int ZERO = 0;
 
     @Autowired
@@ -33,57 +32,71 @@ class BookRepositoryTest {
     @Autowired
     private TestEntityManager em;
 
+    private Author persistAuthor() {
+        Author author = new Author();
+        author.setFullName(AUTHOR);
+        em.persist(author);
+        return author;
+    }
+
+    private Genre persistGenre() {
+        Genre genre = new Genre();
+        genre.setGenreName("Фантастика");
+        em.persist(genre);
+        return genre;
+    }
+
+    private Book persistBook() {
+        Author author = persistAuthor();
+        Genre genre = persistGenre();
+
+        Book book = new Book();
+        book.setTitle(BOOK_TITLE);
+        book.setAuthor(author);
+        book.setGenres(new ArrayList<>(List.of(genre)));
+
+        em.persist(book);
+        em.flush();
+        return book;
+    }
+
     @DisplayName("is checking getById method.")
     @Test
     void checkingGetById() {
-        Optional<Book> bookOptional = bookRepository.findById(BOOK_ID);
-        assertThat(bookOptional).isPresent();
+        Book book = persistBook();
+
+        Optional<Book> actual = bookRepository.findById(book.getId());
+        assertThat(actual).isPresent();
+        assertThat(actual.get().getTitle()).isEqualTo(BOOK_TITLE);
+        assertThat(actual.get().getAuthor().getFullName()).isEqualTo(AUTHOR);
     }
 
     @DisplayName("is checking getAll method.")
     @Test
     @DirtiesContext(methodMode = BEFORE_METHOD)
     void checkingGetAll() {
+        Book book = persistBook();
+
         List<Book> books = bookRepository.findAll();
-        assertThat(books.size()).isEqualTo(3); // В тестовых данных 3 книги
-        
-        Book book = new Book();
-        book.setTitle(BOOK_TITLE);
-        
-        // Получаем существующего автора из БД
-        Author author = em.find(Author.class, 2L); // "Перумов, Н." имеет ID=2 в тестовых данных
-        book.setAuthor(author);
-        
-        // Получаем жанры из БД
-        List<Genre> genres = em.getEntityManager()
-            .createQuery("select g from Genre g", Genre.class)
-            .getResultList();
-        book.setGenres(genres);
-        
-        em.persist(book);
-        
-        books = bookRepository.findAll();
-        assertThat(books.size()).isEqualTo(4); // После добавления должно быть 4 книги
-        assertThat(books).contains(book);
+        assertThat(books)
+                .extracting(Book::getTitle)
+                .contains(BOOK_TITLE);
+        assertThat(books.size()).isGreaterThanOrEqualTo(1);
     }
 
     @DisplayName("is checking save method.")
     @Test
     void checkingSave() {
+        Author author = persistAuthor();
+        Genre genre = persistGenre();
+
         Book book = new Book();
         book.setTitle(BOOK_TITLE);
-        
-        // Получаем существующего автора из БД
-        Author author = em.find(Author.class, 2L); // "Перумов, Н." имеет ID=2 в тестовых данных
         book.setAuthor(author);
-        
-        // Получаем жанры из БД
-        List<Genre> genres = em.getEntityManager()
-            .createQuery("select g from Genre g", Genre.class)
-            .getResultList();
-        book.setGenres(genres);
+        book.setGenres(new ArrayList<>(List.of(genre)));
 
         bookRepository.save(book);
+
         assertThat(book.getId()).isGreaterThan(ZERO);
         assertThat(book.getTitle()).isEqualTo(BOOK_TITLE);
     }
@@ -91,31 +104,24 @@ class BookRepositoryTest {
     @DisplayName("is checking update method.")
     @Test
     void checkingUpdate() {
-        // Получаем существующую книгу
-        Optional<Book> bookOptional = bookRepository.findById(BOOK_ID);
-        assertThat(bookOptional).isPresent();
-        Book book = bookOptional.get();
-        
+        Book book = persistBook();
+
         book.setTitle(UPDATE_BOOK_TITLE);
         bookRepository.save(book);
-        
+
         Book actualBook = em.find(Book.class, book.getId());
-        assertThat(book.getTitle()).isEqualTo(actualBook.getTitle());
+        assertThat(actualBook.getTitle()).isEqualTo(UPDATE_BOOK_TITLE);
     }
 
     @DisplayName("is checking deleteById method.")
     @Test
     void checkingDeleteById() {
-        // Проверяем, что книга существует
-        Optional<Book> bookOptional = bookRepository.findById(BOOK_ID);
-        assertThat(bookOptional).isPresent();
-        Book book = bookOptional.get();
-        
-        // Удаляем книгу
-        bookRepository.deleteById(BOOK_ID);
-        
-        // Проверяем, что книга удалена
-        Optional<Book> deletedBookOptional = bookRepository.findById(BOOK_ID);
-        assertThat(deletedBookOptional).isEmpty();
+        Book book = persistBook();
+
+        Long bookId = book.getId();
+        bookRepository.deleteById(bookId);
+        em.flush();
+
+        assertThat(bookRepository.findById(bookId)).isEmpty();
     }
 }

@@ -18,11 +18,11 @@ import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFO
 @DisplayName("The AuthorRepository class")
 class AuthorRepositoryTest {
 
-    public static final String NEW_AUTHOR = "Лукьяненко, С.";
-    public static final String EXISTING_AUTHOR = "Гаррисон, Г.";
-    public static final Long AUTHOR_ID = 1L;
-    public static final int EXPECTED_LIST_AUTHORS_SIZE = 3;
-    public static final long ZERO_ID = 0;
+    public static final String AUTHOR_1 = "Гаррисон, Г.";
+    public static final String AUTHOR_2 = "Перумов, Н.";
+    public static final String AUTHOR_UNIQUE = "Уникальный автор";
+    public static final String UPDATED_AUTHOR = "Обновлённый Автор";
+    public static final int ZERO = 0;
 
     @Autowired
     private AuthorRepository authorRepository;
@@ -30,45 +30,84 @@ class AuthorRepositoryTest {
     @Autowired
     private TestEntityManager em;
 
-    @DisplayName("is checking getById method.")
-    @Test
-    void checkingGetById() {
+    private Author persistAuthor(String fullName) {
         Author author = new Author();
-        author.setFullName(NEW_AUTHOR);
+        author.setFullName(fullName);
         em.persist(author);
-        assertThat(authorRepository.findById(author.getId())).isNotEmpty();
-    }
-
-    @DisplayName("is checking getAll method.")
-    @Test
-    @DirtiesContext(methodMode = BEFORE_METHOD)
-    void checkingGetAll() {
-        Author author = new Author();
-        author.setFullName(NEW_AUTHOR);
-        em.persist(author);
-        List<Author> authors = authorRepository.findAll();
-        assertThat(authors.size()).isEqualTo(EXPECTED_LIST_AUTHORS_SIZE);
-        assertThat(authors).contains(author);
+        em.flush();
+        return author;
     }
 
     @DisplayName("is checking save method.")
     @Test
     void checkingSave() {
         Author author = new Author();
-        author.setFullName(NEW_AUTHOR);
+        author.setFullName(AUTHOR_1);
+
         authorRepository.save(author);
-        assertThat(author.getId()).isGreaterThan(ZERO_ID);
+
+        assertThat(author.getId()).isNotNull();
+        assertThat(author.getId()).isGreaterThan(ZERO);
+        assertThat(author.getFullName()).isEqualTo(AUTHOR_1);
+    }
+
+    @DisplayName("is checking getById method.")
+    @Test
+    void checkingGetById() {
+        Author expected = persistAuthor(AUTHOR_1);
+
+        Optional<Author> actual = authorRepository.findById(expected.getId());
+
+        assertThat(actual).isPresent();
+        assertThat(actual.get().getFullName()).isEqualTo(AUTHOR_1);
+    }
+
+    @DisplayName("is checking getAll method.")
+    @Test
+    @DirtiesContext(methodMode = BEFORE_METHOD)
+    void checkingGetAll() {
+        persistAuthor(AUTHOR_1);
+        persistAuthor(AUTHOR_2);
+
+        List<Author> authors = authorRepository.findAll();
+
+        assertThat(authors)
+                .extracting(Author::getFullName)
+                .contains(AUTHOR_1, AUTHOR_2);
+    }
+
+    @DisplayName("is checking getByFullName method.")
+    @Test
+    void checkingGetByFullName() {
+        persistAuthor(AUTHOR_UNIQUE);
+
+        Optional<Author> actual = authorRepository.getByFullName(AUTHOR_UNIQUE);
+
+        assertThat(actual).isPresent();
+        assertThat(actual.get().getFullName()).isEqualTo(AUTHOR_UNIQUE);
+    }
+
+    @DisplayName("is checking update method.")
+    @Test
+    void checkingUpdate() {
+        Author author = persistAuthor(AUTHOR_1);
+
+        author.setFullName(UPDATED_AUTHOR);
+        authorRepository.save(author);
+
+        Author actual = em.find(Author.class, author.getId());
+        assertThat(actual.getFullName()).isEqualTo(UPDATED_AUTHOR);
     }
 
     @DisplayName("is checking deleteById method.")
     @Test
     void checkingDeleteById() {
-        Author author = em.find(Author.class, AUTHOR_ID);
-        assertThat(author.getId()).isEqualTo(AUTHOR_ID);
+        Author author = persistAuthor(AUTHOR_1);
 
-        authorRepository.deleteById(AUTHOR_ID);
+        Long id = author.getId();
+        authorRepository.deleteById(id);
+        em.flush();
 
-        assertThat(authorRepository.findAll()).doesNotContain(author);
+        assertThat(authorRepository.findById(id)).isEmpty();
     }
-    
 }

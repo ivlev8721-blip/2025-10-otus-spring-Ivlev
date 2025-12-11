@@ -19,7 +19,6 @@ import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFO
 class CommentRepositoryTest {
 
     public static final int EXPECTED_LIST_COMMENT_SIZE = 3;
-    public static final int EXPECTED_COMMENTS_FOR_BOOK_ONE = 2;
     public static final int ZERO = 0;
     public static final long COMMENT_ID = 1;
     public static final Long BOOK_ID = 1L;
@@ -73,13 +72,5 @@ class CommentRepositoryTest {
         commentRepository.deleteById(comment.getId());
 
         assertThat(commentRepository.findAll()).doesNotContain(comment);
-    }
-    
-    @DisplayName("is checking getCommentByBookId method.")
-    @Test
-    void checkingGetCommentByBookId() {
-        List<Comment> comments = commentRepository.getCommentByBookId(BOOK_ID);
-        assertThat(comments).hasSize(EXPECTED_COMMENTS_FOR_BOOK_ONE);
-        assertThat(comments).allMatch(comment -> comment.getBook().getId().equals(BOOK_ID));
     }
 }

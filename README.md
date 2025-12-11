@@ -1,44 +1,32 @@
-# OTUS Spring (homework01) — Spring JDBC + Spring Shell + H2
+# Домашнее задание: REST API приложения "Библиотека".
 
-## Требования
-- JDK 11+
-- (Опционально) Maven/Gradle. В репо есть Maven Wrapper `mvnw.cmd`.
-- Доступ в интернет или настроенный корпоративный репозиторий/сертификаты для скачивания зависимостей.
 
-## Запуск приложения
-```bash
-cd homework01
-.\mvnw.cmd spring-boot:run
-```
+## Функциональность
 
-После старта доступна консоль Spring Shell. Используйте команды:
-- `books` или `b` — список всех книг
-- `add-book "Title" "Author" "Genre1, Genre2"` или `add-b` — добавить книгу
-- `update-book <id> "Title" ["Author"] ["Genre1, Genre2"]` или `upd-b` — обновить книгу
-- `delete-book <id>` или `del-b` — удалить книгу
+- Работа с сущностями:
+    - Автор (`Author`)
+    - Жанр (`Genre`)
+    - Книга (`Book`)
+    - Комментарий (`Comment`)
+- REST‑эндпоинты:
+    - `/api/v1/book` — операции с книгами
+    - `/api/v1/author` — операции с авторами
+    - `/api/v1/genre` — операции с жанрами
+    - `/api/v1/comment` — операции с комментариями
 
-## Схема и данные
-- `src/main/resources/schema.sql` — создаёт таблицы AUTHOR, GENRE, BOOK, BOOK_GENRE (FK автор/жанры, отношение многие-ко-многим).
-- `src/main/resources/data.sql` — начальные данные (авторы, жанры, книги).
-
-## Сборка jar
-```bash
-cd homework01
-.\mvnw.cmd clean package
-java -jar target/hw-06-0.0.1-SNAPSHOT.jar
-```
-
-## Тесты
-```bash
-cd homework01
-.\mvnw.cmd test
-```
-
-Если меняли `schema.sql`, обязательно запускать `clean`, чтобы скрипты обновились в `target/test-classes`.
+- Сценарии тестипрования описаны в  spring-shell.log
 
 ## Технологии
-- Spring JDBC с NamedParameterJdbcTemplate
-- Spring Shell для консольного интерфейса
-- H2 Database (in-memory)
-- Автоматическая инициализация БД через spring-boot-starter-jdbc
 
+- Java 11
+- Spring Boot 2.4.4
+- Spring Web, Spring Data JPA
+- H2 Database
+- JUnit 5, Spring Boot Test, AssertJ
+
+## Запуск
+### Приложение
+
+```bash
+
+mvn spring-boot:run

@@ -35,8 +35,10 @@ public class BookServiceImpl implements BookService {
 
     @Transactional
     @Override
-    public void update(Book book) {
-        bookRepository.save(book);
+    public Book update(Book book) {
+        Book existBook = bookRepository.findById(book.getId()).orElseThrow();
+        book.setId(existBook.getId());
+        return bookRepository.save(book);
     }
 
     @Transactional
