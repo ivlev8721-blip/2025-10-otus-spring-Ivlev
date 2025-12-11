@@ -7,11 +7,13 @@ import java.util.Optional;
 
 public interface AuthorService {
 
-    Optional<Author> getById(long id);
+    Optional<Author> getById(Long id);
 
     Optional<Author> getByName(String name);
 
     List<Author> getAll();
 
     Author save(Author author);
+
+    void deleteById(Long id);
 }

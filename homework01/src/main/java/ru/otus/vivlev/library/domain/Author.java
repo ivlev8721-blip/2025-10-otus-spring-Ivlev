@@ -1,17 +1,21 @@
 package ru.otus.vivlev.library.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
+
+import javax.persistence.*;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "author")
 public class Author {
 
-    private long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
+    @Column(name = "full_name")
     private String fullName;
-
-    public Author(String fullName) {
-        this.fullName = fullName;
-    }
 }

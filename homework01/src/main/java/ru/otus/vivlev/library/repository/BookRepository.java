@@ -5,15 +5,15 @@ import ru.otus.vivlev.library.domain.Book;
 import java.util.List;
 import java.util.Optional;
 
-public interface BookJdbc {
+public interface BookRepository {
 
-    Optional<Book> getById(long id);
+    Optional<Book> getById(Long id);
 
     List<Book> getAll();
 
     Book save(Book book);
 
-    void update(Book book);
+    Book update(Book book);
 
-    void deleteById(long id);
+    void deleteById(Long id);
 }

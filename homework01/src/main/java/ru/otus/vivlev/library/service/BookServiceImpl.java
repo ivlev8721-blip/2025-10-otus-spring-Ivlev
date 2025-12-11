@@ -1,43 +1,47 @@
 package ru.otus.vivlev.library.service;
 
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.otus.vivlev.library.repository.BookJdbc;
+import org.springframework.transaction.annotation.Transactional;
+import ru.otus.vivlev.library.repository.BookRepository;
 import ru.otus.vivlev.library.domain.Book;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class BookServiceImpl implements BookService {
 
-    private final BookJdbc bookJdbc;
+    private final BookRepository bookRepository;
 
-    public BookServiceImpl(BookJdbc bookJdbc) {
-        this.bookJdbc = bookJdbc;
-    }
-
+    @Transactional(readOnly = true)
     @Override
-    public Optional<Book> getById(long id) {
-        return bookJdbc.getById(id);
+    public Optional<Book> getById(Long id) {
+        return bookRepository.getById(id);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Book> getAll() {
-        return bookJdbc.getAll();
+        return bookRepository.getAll();
     }
 
+    @Transactional
     @Override
     public Book save(Book book) {
-        return bookJdbc.save(book);
+        return bookRepository.save(book);
     }
 
+    @Transactional
     @Override
     public void update(Book book) {
-        bookJdbc.update(book);
+        bookRepository.update(book);
     }
 
+    @Transactional
     @Override
-    public void deleteById(long id) {
-        bookJdbc.deleteById(id);
+    public void deleteById(Long id) {
+        bookRepository.deleteById(id);
     }
 }

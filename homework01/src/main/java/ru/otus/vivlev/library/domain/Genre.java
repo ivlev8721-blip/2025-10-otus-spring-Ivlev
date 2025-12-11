@@ -1,17 +1,21 @@
 package ru.otus.vivlev.library.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
+
+import javax.persistence.*;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "genre")
 public class Genre {
 
-    private long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
 
+    @Column(name = "genre_name")
     private String genreName;
-
-    public Genre(String genreName) {
-        this.genreName = genreName;
-    }
 }

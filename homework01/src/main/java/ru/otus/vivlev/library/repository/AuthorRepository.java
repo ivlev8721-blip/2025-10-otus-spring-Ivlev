@@ -5,9 +5,9 @@ import ru.otus.vivlev.library.domain.Author;
 import java.util.List;
 import java.util.Optional;
 
-public interface AuthorJdbc {
+public interface AuthorRepository {
 
-    Optional<Author> getById(long id);
+    Optional<Author> getById(Long id);
 
     Optional<Author> getByName(String name);
 
@@ -15,5 +15,5 @@ public interface AuthorJdbc {
 
     Author save(Author author);
 
-    void deleteById(long id);
+    void deleteById(Long id);
 }

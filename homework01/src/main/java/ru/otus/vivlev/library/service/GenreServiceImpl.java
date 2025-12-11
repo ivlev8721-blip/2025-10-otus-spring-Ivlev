@@ -1,38 +1,47 @@
 package ru.otus.vivlev.library.service;
 
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.otus.vivlev.library.repository.GenreJdbc;
+import org.springframework.transaction.annotation.Transactional;
+import ru.otus.vivlev.library.repository.GenreRepository;
 import ru.otus.vivlev.library.domain.Genre;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class GenreServiceImpl implements GenreService {
 
-    private final GenreJdbc genreJdbc;
+    private final GenreRepository genreRepository;
 
-    public GenreServiceImpl(GenreJdbc genreJdbc) {
-        this.genreJdbc = genreJdbc;
-    }
-
+    @Transactional(readOnly = true)
     @Override
-    public Optional<Genre> getById(long id) {
-        return genreJdbc.getById(id);
+    public Optional<Genre> getById(Long id) {
+        return genreRepository.getById(id);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<Genre> getByName(String name) {
-        return genreJdbc.getByName(name);
+        return genreRepository.getByName(name);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Genre> getAll() {
-        return genreJdbc.getAll();
+        return genreRepository.getAll();
     }
 
+    @Transactional
     @Override
     public Genre save(Genre genre) {
-        return genreJdbc.save(genre);
+        return genreRepository.save(genre);
+    }
+
+    @Transactional
+    @Override
+    public void deleteById(Long id) {
+        genreRepository.deleteById(id);
     }
 }
