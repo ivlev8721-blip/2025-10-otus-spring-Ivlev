@@ -18,13 +18,13 @@ public class CommentServiceImpl implements CommentService {
     @Transactional(readOnly = true)
     @Override
     public Optional<Comment> getById(Long id) {
-        return commentRepository.getById(id);
+        return commentRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<Comment> getAll() {
-        return commentRepository.getAll();
+        return commentRepository.findAll();
     }
 
     @Transactional
@@ -33,6 +33,7 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.save(comment);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<Comment> getCommentByBookId(Long bookId) {
         return commentRepository.getCommentByBookId(bookId);

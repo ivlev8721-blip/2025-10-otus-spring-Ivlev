@@ -15,22 +15,21 @@ public class AuthorServiceImpl implements AuthorService {
 
     private final AuthorRepository authorRepository;
 
-    @Transactional(readOnly = true)
-    @Override
+    @Transactional(readOnly = true)    @Override
     public Optional<Author> getById(Long id) {
-        return authorRepository.getById(id);
+        return authorRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
     @Override
     public Optional<Author> getByName(String name) {
-        return authorRepository.getByName(name);
+        return authorRepository.getByFullName(name);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<Author> getAll() {
-        return authorRepository.getAll();
+        return authorRepository.findAll();
     }
 
     @Transactional

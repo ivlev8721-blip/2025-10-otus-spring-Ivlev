@@ -1,25 +1,21 @@
 spring:
-  # Отключаем автоматическую инициализацию SQL-скриптов Spring Boot,
-  # так как в @DataJpaTest она не применяется, и мы управляем схемой и данными через @Sql
-  sql:
-    init:
-      mode: never
+  shell:
+    interactive:
+      enabled: false
 
   datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:librarydb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:librarydb
     username: sa
-    password: ""  # H2 по умолчанию использует пустой пароль для sa
+    password: sa
+    data: data-test.sql
 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+    generate-ddl: false
     hibernate:
-      ddl-auto: none  # схема создаётся вручную через schema.sql
-    show-sql: true
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
-
-  shell:
-    interactive:
-      enabled: false  # Отключаем интерактивный режим Spring Shell в тестах
+    show-sql: true

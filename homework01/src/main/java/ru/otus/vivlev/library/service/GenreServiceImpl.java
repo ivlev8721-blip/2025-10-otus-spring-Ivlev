@@ -18,19 +18,19 @@ public class GenreServiceImpl implements GenreService {
     @Transactional(readOnly = true)
     @Override
     public Optional<Genre> getById(Long id) {
-        return genreRepository.getById(id);
+        return genreRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
     @Override
     public Optional<Genre> getByName(String name) {
-        return genreRepository.getByName(name);
+        return genreRepository.getByGenreName(name);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<Genre> getAll() {
-        return genreRepository.getAll();
+        return genreRepository.findAll();
     }
 
     @Transactional

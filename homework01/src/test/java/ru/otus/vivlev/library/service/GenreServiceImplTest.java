@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFORE_METHOD;
 
-@DisplayName("Тестирование GenreServiceImpl")
+@DisplayName("The GenreServiceImpl class")
 @SpringBootTest
 class GenreServiceImplTest {
 
@@ -39,24 +39,25 @@ class GenreServiceImplTest {
         Genre expectedGenre = new Genre();
         expectedGenre.setId(GENRE_ID_1);
         expectedGenre.setGenreName(FANTASTIC);
-        doReturn(Optional.of(expectedGenre)).when(genreRepository).getById(GENRE_ID_1);
+        doReturn(Optional.of(expectedGenre)).when(genreRepository).findById(GENRE_ID_1);
         Genre actualGenre = genreService.getById(GENRE_ID_1).get();
 
         assertThat(actualGenre).usingRecursiveComparison().isEqualTo(expectedGenre);
     }
 
+    @DisplayName("is checking getAll method.")
     @Test
-    @DisplayName("Должен возвращать все жанры")
-    void shouldReturnAllGenres() {
+    @DirtiesContext(methodMode = BEFORE_METHOD)
+    void checkingGetAll() {
         Genre genre1 = new Genre();
         genre1.setId(GENRE_ID_1);
         genre1.setGenreName(FANTASTIC);
         Genre genre2 = new Genre();
-        genre2.setId(GENRE_ID_2);
-        genre2.setGenreName(FANTASY);
+        genre1.setId(GENRE_ID_2);
+        genre1.setGenreName(FANTASY);
         List<Genre> list = List.of(genre1, genre2);
 
-        doReturn(list).when(genreRepository).getAll();
+        doReturn(list).when(genreRepository).findAll();
 
         List<Genre> actList = genreService.getAll();
 

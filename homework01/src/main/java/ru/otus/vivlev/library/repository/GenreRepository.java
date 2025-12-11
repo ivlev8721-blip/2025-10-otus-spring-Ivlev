@@ -1,19 +1,16 @@
 package ru.otus.vivlev.library.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import ru.otus.vivlev.library.domain.Genre;
 
-import java.util.List;
 import java.util.Optional;
 
-public interface GenreRepository {
+@Repository
+public interface GenreRepository extends JpaRepository<Genre, Long> {
 
-    Optional<Genre> getById(Long id);
-
-    Optional<Genre> getByName(String name);
-
-    List<Genre> getAll();
-
-    Genre save(Genre genre);
-
-    void deleteById(Long id);
+    @Query("select g from Genre g where g.genreName = :genreName")
+    Optional<Genre> getByGenreName(@Param("genreName") String genreName);
 }

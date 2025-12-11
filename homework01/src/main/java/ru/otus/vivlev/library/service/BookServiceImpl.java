@@ -18,13 +18,13 @@ public class BookServiceImpl implements BookService {
     @Transactional(readOnly = true)
     @Override
     public Optional<Book> getById(Long id) {
-        return bookRepository.getById(id);
+        return bookRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<Book> getAll() {
-        return bookRepository.getAll();
+        return bookRepository.findAll();
     }
 
     @Transactional
@@ -36,7 +36,7 @@ public class BookServiceImpl implements BookService {
     @Transactional
     @Override
     public void update(Book book) {
-        bookRepository.update(book);
+        bookRepository.save(book);
     }
 
     @Transactional
