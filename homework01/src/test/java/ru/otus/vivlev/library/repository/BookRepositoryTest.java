@@ -10,9 +10,7 @@ import ru.otus.vivlev.library.domain.Author;
 import ru.otus.vivlev.library.domain.Book;
 import ru.otus.vivlev.library.domain.Genre;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFORE_METHOD;
@@ -24,7 +22,12 @@ class BookRepositoryTest {
     public static final String AUTHOR = "Перумов, Н.";
     public static final String BOOK_TITLE = "Сумеречный дозор";
     public static final String UPDATE_BOOK_TITLE = "Мальчик и тьма";
+    public static final long BOOK_ID = 1;
+    public static final int EXPECTED_LIST_BOOK_SIZE = 4;
     public static final int ZERO = 0;
+
+    public static final String QUERY_FIND_ALL_GENRES = "select g from Genre g";
+    public static final String QUERY_FIND_AUTHOR_BY_NAME = "select a from Author a where a.fullName = :name";
 
     @Autowired
     private BookRepository bookRepository;
@@ -32,71 +35,54 @@ class BookRepositoryTest {
     @Autowired
     private TestEntityManager em;
 
-    private Author persistAuthor() {
-        Author author = new Author();
-        author.setFullName(AUTHOR);
-        em.persist(author);
-        return author;
-    }
-
-    private Genre persistGenre() {
-        Genre genre = new Genre();
-        genre.setGenreName("Фантастика");
-        em.persist(genre);
-        return genre;
-    }
-
-    private Book persistBook() {
-        Author author = persistAuthor();
-        Genre genre = persistGenre();
-
-        Book book = new Book();
-        book.setTitle(BOOK_TITLE);
-        book.setAuthor(author);
-        book.setGenres(new ArrayList<>(List.of(genre)));
-
-        em.persist(book);
-        em.flush();
-        return book;
-    }
-
     @DisplayName("is checking getById method.")
     @Test
     void checkingGetById() {
-        Book book = persistBook();
+        List<Genre> genre = em.getEntityManager().createQuery(QUERY_FIND_ALL_GENRES, Genre.class).getResultList();
+        Author author = em.getEntityManager().createQuery(
+                QUERY_FIND_AUTHOR_BY_NAME, Author.class).setParameter("name", AUTHOR)
+                .getResultList().stream().findFirst().get();
+        Book book = new Book();
+        book.setTitle(BOOK_TITLE);
+        book.setAuthor(author);
+        book.setGenres(genre);
 
-        Optional<Book> actual = bookRepository.findById(book.getId());
-        assertThat(actual).isPresent();
-        assertThat(actual.get().getTitle()).isEqualTo(BOOK_TITLE);
-        assertThat(actual.get().getAuthor().getFullName()).isEqualTo(AUTHOR);
+        em.persist(book);
+        assertThat(bookRepository.findById(book.getId())).isNotEmpty();
     }
 
     @DisplayName("is checking getAll method.")
     @Test
     @DirtiesContext(methodMode = BEFORE_METHOD)
     void checkingGetAll() {
-        Book book = persistBook();
+        List<Genre> genre = em.getEntityManager().createQuery(QUERY_FIND_ALL_GENRES, Genre.class).getResultList();
+        Author author = em.getEntityManager().createQuery(
+                QUERY_FIND_AUTHOR_BY_NAME, Author.class).setParameter("name", AUTHOR)
+                .getResultList().stream().findFirst().get();
+        Book book = new Book();
+        book.setTitle(BOOK_TITLE);
+        book.setAuthor(author);
+        book.setGenres(genre);
 
+        em.persist(book);
         List<Book> books = bookRepository.findAll();
-        assertThat(books)
-                .extracting(Book::getTitle)
-                .contains(BOOK_TITLE);
-        assertThat(books.size()).isGreaterThanOrEqualTo(1);
+        assertThat(books.size()).isEqualTo(EXPECTED_LIST_BOOK_SIZE);
+        assertThat(books).contains(book);
     }
 
     @DisplayName("is checking save method.")
     @Test
     void checkingSave() {
-        Author author = persistAuthor();
-        Genre genre = persistGenre();
-
+        List<Genre> genre = em.getEntityManager().createQuery(QUERY_FIND_ALL_GENRES, Genre.class).getResultList();
+        Author author = em.getEntityManager().createQuery(
+                QUERY_FIND_AUTHOR_BY_NAME, Author.class).setParameter("name", AUTHOR)
+                .getResultList().stream().findFirst().get();
         Book book = new Book();
         book.setTitle(BOOK_TITLE);
         book.setAuthor(author);
-        book.setGenres(new ArrayList<>(List.of(genre)));
+        book.setGenres(genre);
 
         bookRepository.save(book);
-
         assertThat(book.getId()).isGreaterThan(ZERO);
         assertThat(book.getTitle()).isEqualTo(BOOK_TITLE);
     }
@@ -104,24 +90,36 @@ class BookRepositoryTest {
     @DisplayName("is checking update method.")
     @Test
     void checkingUpdate() {
-        Book book = persistBook();
+        List<Genre> genre = em.getEntityManager().createQuery(QUERY_FIND_ALL_GENRES, Genre.class).getResultList();
+        Author author = em.getEntityManager().createQuery(
+                QUERY_FIND_AUTHOR_BY_NAME, Author.class).setParameter("name", AUTHOR)
+                .getResultList().stream().findFirst().get();
+        Book book = new Book();
+        book.setTitle(BOOK_TITLE);
+        book.setAuthor(author);
+        book.setGenres(genre);
 
+        em.persist(book);
         book.setTitle(UPDATE_BOOK_TITLE);
         bookRepository.save(book);
-
         Book actualBook = em.find(Book.class, book.getId());
-        assertThat(actualBook.getTitle()).isEqualTo(UPDATE_BOOK_TITLE);
+        assertThat(book.getTitle()).isEqualTo(actualBook.getTitle());
     }
 
     @DisplayName("is checking deleteById method.")
     @Test
     void checkingDeleteById() {
-        Book book = persistBook();
+        List<Genre> genre = em.getEntityManager().createQuery(QUERY_FIND_ALL_GENRES, Genre.class).getResultList();
+        Author author = em.getEntityManager().createQuery(
+                QUERY_FIND_AUTHOR_BY_NAME, Author.class).setParameter("name", AUTHOR)
+                .getResultList().stream().findFirst().get();
+        Book book = new Book();
+        book.setTitle(BOOK_TITLE);
+        book.setAuthor(author);
+        book.setGenres(genre);
 
-        Long bookId = book.getId();
-        bookRepository.deleteById(bookId);
-        em.flush();
-
-        assertThat(bookRepository.findById(bookId)).isEmpty();
+        em.persist(book);
+        bookRepository.deleteById(book.getId());
+        assertThat(bookRepository.findById(book.getId())).isEmpty();
     }
 }

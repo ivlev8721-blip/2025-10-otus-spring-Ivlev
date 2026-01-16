@@ -6,7 +6,6 @@ spring:
     password: sa
     schema: classpath*:schema.sql
     data: classpath*:data.sql
-    sqlScriptEncoding: UTF-8
     initialization-mode: always
 
   h2:
@@ -24,3 +23,7 @@ spring:
       hibernate:
         format_sql: true
     show-sql: false
+
+jwt:
+  secret: mySecretKeyForJWTTokenGenerationThatIsLongEnoughForHS512AlgorithmAndSecureEnough1234567890
+  sessionTime: 1200000000

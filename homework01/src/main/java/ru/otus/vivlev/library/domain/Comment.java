@@ -9,24 +9,24 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "comment")
+@Table(name = "COMMENT")
 public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "ID")
     private Long id;
 
-    @Column(name = "user_name")
+    @Column(name = "USER_NAME")
     private String userName;
 
-    @Column(name = "text")
+    @Column(name = "TEXT")
     private String text;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_id")
+    @JoinColumn(name = "BOOK_ID")
     private Book book;
 }

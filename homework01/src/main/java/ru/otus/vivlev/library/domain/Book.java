@@ -13,28 +13,28 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "book")
+@Table(name = "BOOK")
 public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "ID")
     private Long id;
 
-    @Column(name = "title")
+    @Column(name = "TITLE")
     private String title;
 
     @ManyToOne(targetEntity = Author.class, fetch = FetchType.EAGER)
-    @JoinColumn(name = "author_id")
+    @JoinColumn(name = "AUTHOR_ID")
     private Author author;
 
     @EqualsAndHashCode.Exclude
     @Fetch(FetchMode.SUBSELECT)
     @ManyToMany(targetEntity = Genre.class, fetch = FetchType.EAGER)
     @JoinTable(
-            name = "book_genre",
-            joinColumns = {@JoinColumn(name = "book_id")},
-            inverseJoinColumns = {@JoinColumn(name = "genre_id")}
+            name = "BOOK_GENRE",
+            joinColumns = {@JoinColumn(name = "BOOK_ID")},
+            inverseJoinColumns = {@JoinColumn(name = "GENRE_ID")}
     )
     private List<Genre> genres = new ArrayList<>();
 

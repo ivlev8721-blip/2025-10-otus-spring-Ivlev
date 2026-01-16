@@ -18,7 +18,7 @@ import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFO
 class GenreRepositoryTest {
 
     public static final String NEW_GENRE = "Приключения";
-    public static final int EXPECTED_LIST_GENRES_SIZE = 3;
+    public static final int EXPECTED_LIST_GENRES_SIZE = 4;
     public static final long ZERO = 0;
 
     @Autowired

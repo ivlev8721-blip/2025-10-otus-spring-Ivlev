@@ -9,10 +9,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import ru.otus.vivlev.library.domain.Genre;
-import ru.otus.vivlev.library.repository.GenreRepository;
 
-import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -29,22 +29,32 @@ public class GenreControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
-    private GenreRepository genreRepository;
+    public static final String USER = "user";
+    public static final String USER_PASS = "user";
+    public static final String ADMIN = "admin";
+    public static final String ADMIN_PASS = "admin";
+    public static final long GENRE_ID_1 = 1L;
+    public static final long GENRE_ID_2 = 2L;
+    public static final long GENRE_ID_3 = 3L;
+    public static final String GENRE_1 = "Фантастика";
+    public static final String GENRE_2 = "Фентези";
+    public static final String GENRE_3 = "Роман";
 
     @DisplayName("is checking getById method.")
     @Test
     void checkingGetById() throws Exception {
-        Genre genre = genreRepository.findById(1L).orElseThrow();
+        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
+
         String expectedResponse = objectMapper.writeValueAsString(genre);
 
         MvcResult mvcResult = mockMvc.perform(get("/api/v1/genre/1")
-                        .contentType("application/json"))
+                .contentType("application/json")
+                .header("Authorization", TokenUtils.getToken(mockMvc, USER, USER_PASS))
+                .content(expectedResponse))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String actualResponse = mvcResult.getResponse()
-                .getContentAsString(StandardCharsets.UTF_8);
+        String actualResponse = mvcResult.getResponse().getContentAsString();
 
         assertThat(actualResponse).isEqualToIgnoringWhitespace(expectedResponse);
     }
@@ -52,16 +62,21 @@ public class GenreControllerTest {
     @DisplayName("is checking getAll method.")
     @Test
     void checkingGetAll() throws Exception {
-        List<Genre> genres = genreRepository.findAll();
+        Genre genre1 = new Genre(GENRE_ID_1, GENRE_1);
+        Genre genre2 = new Genre(GENRE_ID_2, GENRE_2);
+        Genre genre3 = new Genre(GENRE_ID_3, GENRE_3);
+        List<Genre> genres = List.of(genre1, genre2,genre3);
+
         String expectedResponse = objectMapper.writeValueAsString(genres);
 
         MvcResult mvcResult = mockMvc.perform(get("/api/v1/genre")
-                        .contentType("application/json"))
+                .contentType("application/json")
+                .header("Authorization", TokenUtils.getToken(mockMvc, USER, USER_PASS))
+                .content(expectedResponse))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String actualResponse = mvcResult.getResponse()
-                .getContentAsString(StandardCharsets.UTF_8);
+        String actualResponse = mvcResult.getResponse().getContentAsString();
 
         assertThat(actualResponse).isEqualToIgnoringWhitespace(expectedResponse);
     }
@@ -69,19 +84,49 @@ public class GenreControllerTest {
     @DisplayName("is checking saveGenre method.")
     @Test
     void checkingSave() throws Exception {
-        Genre genre = genreRepository.findById(1L).orElseThrow();
-        String requestBody = objectMapper.writeValueAsString(genre);
+        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
+
+        String expectedResponse = objectMapper.writeValueAsString(genre);
 
         MvcResult mvcResult = mockMvc.perform(post("/api/v1/genre")
-                        .contentType("application/json")
-                        .content(requestBody))
+                .contentType("application/json")
+                .header("Authorization", TokenUtils.getToken(mockMvc, ADMIN, ADMIN_PASS))
+                .content(expectedResponse))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String actualResponse = mvcResult.getResponse()
-                .getContentAsString(StandardCharsets.UTF_8);
+        String actualResponse = mvcResult.getResponse().getContentAsString();
 
-        Genre saved = objectMapper.readValue(actualResponse, Genre.class);
-        assertThat(saved.getGenreName()).isEqualTo(genre.getGenreName());
+        assertThat(actualResponse).isEqualToIgnoringWhitespace(expectedResponse);
+    }
+
+    @DisplayName("is checking saveGenre method with invalid authorities.")
+    @Test
+    void checkingSaveWithInvalidAuthorities() throws Exception {
+        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
+
+        String expectedResponse = objectMapper.writeValueAsString(genre);
+
+        MvcResult mvcResult = mockMvc.perform(post("/api/v1/genre")
+                .contentType("application/json")
+                .header("Authorization", TokenUtils.getToken(mockMvc, USER, USER_PASS))
+                .content(expectedResponse))
+                .andExpect(status().isForbidden())
+                .andReturn();
+    }
+
+    @DisplayName("is checking delete method with invalid authorities.")
+    @Test
+    void checkingDeleteWithInvalidAuthorities() throws Exception {
+        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
+
+        String expectedResponse = objectMapper.writeValueAsString(genre);
+
+        MvcResult mvcResult = mockMvc.perform(delete("/api/v1/genre/1")
+                .contentType("application/json")
+                .header("Authorization", TokenUtils.getToken(mockMvc, USER, USER_PASS))
+                .content(expectedResponse))
+                .andExpect(status().isForbidden())
+                .andReturn();
     }
 }

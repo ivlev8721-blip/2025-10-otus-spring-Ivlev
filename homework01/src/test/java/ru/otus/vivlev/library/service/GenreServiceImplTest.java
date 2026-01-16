@@ -53,8 +53,8 @@ class GenreServiceImplTest {
         genre1.setId(GENRE_ID_1);
         genre1.setGenreName(FANTASTIC);
         Genre genre2 = new Genre();
-        genre1.setId(GENRE_ID_2);
-        genre1.setGenreName(FANTASY);
+        genre2.setId(GENRE_ID_2);
+        genre2.setGenreName(FANTASY);
         List<Genre> list = List.of(genre1, genre2);
 
         doReturn(list).when(genreRepository).findAll();

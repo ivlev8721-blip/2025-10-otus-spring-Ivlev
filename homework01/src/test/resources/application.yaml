@@ -5,7 +5,6 @@ spring:
     username: sa
     password: sa
     data: classpath*:data-test.sql
-    sqlScriptEncoding: UTF-8
 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
@@ -15,4 +14,17 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        connection:
+          characterEncoding: UTF-8
+          useUnicode: true
     show-sql: true
+
+jwt:
+  secret: mySecretKeyForJWTTokenGenerationThatIsLongEnoughForHS512AlgorithmAndSecureEnough1234567890
+  sessionTime: 1200000000
+
+logging:
+  charset:
+    console: UTF-8
+  level:
+    org.springframework.web: DEBUG

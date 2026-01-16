@@ -8,14 +8,14 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "genre")
+@Table(name = "GENRE")
 public class Genre {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "ID")
     private Long id;
 
-    @Column(name = "genre_name")
+    @Column(name = "GENRE_NAME")
     private String genreName;
 }
