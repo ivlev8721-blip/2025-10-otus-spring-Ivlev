@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>ru.otus.vivlev</groupId>
-	<artifactId>hw-09</artifactId>
+	<artifactId>hw-23</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>hw-09</name>
-	<description>Demo project for Spring Boot MVC</description>
+	<name>hw-23</name>
+	<description>Demo project for Spring</description>
 	<properties>
 		<java.version>11</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -74,6 +74,14 @@
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-integration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-messaging</artifactId>
 		</dependency>
 	</dependencies>
 
