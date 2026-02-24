@@ -46,7 +46,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
         web.ignoring()
-                .antMatchers("/h2-console/**");
+                .antMatchers("/h2-console/**")
+                .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**");
     }
 
     @Override
@@ -61,14 +62,24 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/api/v1/authenticate").permitAll()
-                .antMatchers("/api/v1/book/**").authenticated()
-                .antMatchers(HttpMethod.GET, "/api/v1/author/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, "/api/v1/author/**").hasAnyRole(RoleConstants.ADMIN)
-                .antMatchers(HttpMethod.POST, "/api/v1/author").hasAnyRole(RoleConstants.ADMIN)
-                .antMatchers(HttpMethod.GET, "/api/v1/genre/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, "/api/v1/genre/**").hasAnyRole(RoleConstants.ADMIN)
-                .antMatchers(HttpMethod.POST, "/api/v1/genre").hasAnyRole(RoleConstants.ADMIN)
-                .antMatchers("/api/v1/comment/**").authenticated();
+                .antMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/v1/author/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/v1/author/**").permitAll()
+                .antMatchers(HttpMethod.PUT, "/api/v1/author/**").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/api/v1/author/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/v1/genre/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/v1/genre/**").permitAll()
+                .antMatchers(HttpMethod.PUT, "/api/v1/genre/**").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/api/v1/genre/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/v1/book/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/v1/book/**").permitAll()
+                .antMatchers(HttpMethod.PUT, "/api/v1/book/**").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/api/v1/book/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/v1/comment/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/v1/comment/**").permitAll()
+                .antMatchers(HttpMethod.PUT, "/api/v1/comment/**").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/api/v1/comment/**").permitAll()
+                .anyRequest().authenticated();
 
     }
 }

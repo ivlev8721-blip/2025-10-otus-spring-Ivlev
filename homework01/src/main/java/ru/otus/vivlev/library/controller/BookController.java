@@ -1,44 +1,67 @@
 package ru.otus.vivlev.library.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.otus.vivlev.library.domain.Book;
+import ru.otus.vivlev.library.dto.BookDto;
+import ru.otus.vivlev.library.exeption.ResourceNotFoundException;
+import ru.otus.vivlev.library.mapper.DtoMapper;
 import ru.otus.vivlev.library.service.BookService;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
+@RequestMapping("/api/v1/book")
 @RequiredArgsConstructor
+@Tag(name = "Книги", description = "API для управления книгами")
 public class BookController {
 
     private final BookService bookService;
+    private final DtoMapper mapper;
 
-    @GetMapping(value = "/api/v1/book/{id}", produces = "application/json;charset=UTF-8")
-    public ResponseEntity<Book> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(bookService.getById(id).orElseThrow());
+    @GetMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
+    @Operation(summary = "Получить книгу по ID")
+    public ResponseEntity<BookDto> getById(@PathVariable Long id) {
+        return bookService.getById(id)
+                .map(mapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ResourceNotFoundException("Книга с ID " + id + " не найдена"));
     }
 
-    @GetMapping(value = "/api/v1/book", produces = "application/json;charset=UTF-8")
-    public ResponseEntity<List<Book>> getAll() {
-        return ResponseEntity.ok(bookService.getAll());
+    @GetMapping(produces = "application/json;charset=UTF-8")
+    @Operation(summary = "Получить все книги")
+    public ResponseEntity<List<BookDto>> getAll() {
+        return ResponseEntity.ok(mapper.toBookDtoList(bookService.getAll()));
     }
 
-    @PostMapping(value = "/api/v1/book", produces = "application/json;charset=UTF-8")
-    public ResponseEntity<Book> saveBook(@RequestBody Book book) {
-        return ResponseEntity.ok(bookService.save(book));
+    @PostMapping(produces = "application/json;charset=UTF-8")
+    @Operation(summary = "Создать новую книгу")
+    public ResponseEntity<BookDto> createBook(@Valid @RequestBody BookDto bookDto) {
+        bookDto.setId(null);
+        var saved = bookService.save(mapper.toEntity(bookDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toDto(saved));
     }
 
-    @PutMapping(value = "/api/v1/book/{id}", produces = "application/json;charset=UTF-8")
-    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book book) {
-        book.setId(id);
-        return ResponseEntity.ok(bookService.update(book));
+    @PutMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
+    @Operation(summary = "Обновить книгу")
+    public ResponseEntity<BookDto> updateBook(@PathVariable Long id, @Valid @RequestBody BookDto bookDto) {
+        bookService.getById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Книга с ID " + id + " не найдена"));
+        bookDto.setId(id);
+        var updated = bookService.update(mapper.toEntity(bookDto));
+        return ResponseEntity.ok(mapper.toDto(updated));
     }
 
-    @DeleteMapping(value = "/api/v1/book/{id}")
-    public ResponseEntity<?> deleteBook(@PathVariable("id") Long id) {
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Удалить книгу")
+    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+        bookService.getById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Книга с ID " + id + " не найдена"));
         bookService.deleteById(id);
-        return new ResponseEntity(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 }
