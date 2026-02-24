@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.otus.vivlev.library.dto.BookDto;
 import ru.otus.vivlev.library.exeption.ResourceNotFoundException;
+import ru.otus.vivlev.library.kafka.event.BookEvent;
+import ru.otus.vivlev.library.kafka.producer.LibraryEventProducer;
 import ru.otus.vivlev.library.mapper.DtoMapper;
 import ru.otus.vivlev.library.service.BookService;
 
@@ -22,6 +24,7 @@ public class BookController {
 
     private final BookService bookService;
     private final DtoMapper mapper;
+    private final LibraryEventProducer eventProducer;
 
     @GetMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
     @Operation(summary = "Получить книгу по ID")
@@ -43,7 +46,9 @@ public class BookController {
     public ResponseEntity<BookDto> createBook(@Valid @RequestBody BookDto bookDto) {
         bookDto.setId(null);
         var saved = bookService.save(mapper.toEntity(bookDto));
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toDto(saved));
+        var savedDto = mapper.toDto(saved);
+        eventProducer.sendBookEvent(new BookEvent(BookEvent.EventType.CREATED, savedDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedDto);
     }
 
     @PutMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
@@ -53,15 +58,19 @@ public class BookController {
                 .orElseThrow(() -> new ResourceNotFoundException("Книга с ID " + id + " не найдена"));
         bookDto.setId(id);
         var updated = bookService.update(mapper.toEntity(bookDto));
-        return ResponseEntity.ok(mapper.toDto(updated));
+        var updatedDto = mapper.toDto(updated);
+        eventProducer.sendBookEvent(new BookEvent(BookEvent.EventType.UPDATED, updatedDto));
+        return ResponseEntity.ok(updatedDto);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить книгу")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
-        bookService.getById(id)
+        var book = bookService.getById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Книга с ID " + id + " не найдена"));
+        var bookDto = mapper.toDto(book);
         bookService.deleteById(id);
+        eventProducer.sendBookEvent(new BookEvent(BookEvent.EventType.DELETED, bookDto));
         return ResponseEntity.noContent().build();
     }
 }

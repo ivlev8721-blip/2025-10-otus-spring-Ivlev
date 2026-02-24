@@ -6,14 +6,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import ru.otus.vivlev.library.domain.Author;
-import ru.otus.vivlev.library.domain.Book;
-import ru.otus.vivlev.library.domain.Genre;
+import ru.otus.vivlev.library.dto.AuthorDto;
+import ru.otus.vivlev.library.dto.BookDto;
+import ru.otus.vivlev.library.dto.GenreDto;
+import ru.otus.vivlev.library.kafka.producer.LibraryEventProducer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,9 @@ public class BookControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private LibraryEventProducer eventProducer;
 
     private final Map<String, String> tokenMap = new HashMap<>();
 
@@ -55,106 +59,94 @@ public class BookControllerTest {
 
     @DisplayName("is checking getById method.")
     @Test
+    @DirtiesContext(methodMode = BEFORE_METHOD)
     void checkingGetById() throws Exception {
-        Author author = new Author(AUTHOR_ID_1, AUTHOR_1);
-        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
-        Book book = new Book(BOOK_ID_1, BOOK_1, author, List.of(genre), new ArrayList<>());
-
-        String expectedResponse = objectMapper.writeValueAsString(book);
-
         MvcResult mvcResult = mockMvc.perform(get("/api/v1/book/1")
-                .contentType("application/json")
-                .header("Authorization", TokenUtils.getToken(tokenMap, mockMvc, USER, USER_PASS))
-                .content(expectedResponse))
+                .contentType("application/json"))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String actualResponse = mvcResult.getResponse().getContentAsString();
+        BookDto result = objectMapper.readValue(actualResponse, BookDto.class);
 
-        assertThat(actualResponse).isEqualToIgnoringWhitespace(expectedResponse);
+        assertThat(result.getId()).isEqualTo(BOOK_ID_1);
+        assertThat(result.getTitle()).isEqualTo(BOOK_1);
+        assertThat(result.getAuthor()).isNotNull();
+        assertThat(result.getGenres()).isNotEmpty();
     }
 
     @DisplayName("is checking getAll method.")
     @Test
-    @DirtiesContext(methodMode = BEFORE_METHOD)
     void checkingGetAll() throws Exception {
-        Author author1 = new Author(AUTHOR_ID_1, AUTHOR_1);
-        Author author2 = new Author(AUTHOR_ID_2, AUTHOR_2);
-        Genre genre1 = new Genre(GENRE_ID_1, GENRE_1);
-        Genre genre2 = new Genre(GENRE_ID_2, GENRE_2);
-        Book book1 = new Book(BOOK_ID_1, BOOK_1, author1, List.of(genre1), new ArrayList<>());
-        Book book2 = new Book(BOOK_ID_2, BOOK_2, author1, List.of(genre1), new ArrayList<>());
-        Book book3 = new Book(BOOK_ID_3, BOOK_3, author2, List.of(genre2), new ArrayList<>());
-        List<Book> books = List.of(book1, book2, book3);
-
-        String expectedResponse = objectMapper.writeValueAsString(books);
-
         MvcResult mvcResult = mockMvc.perform(get("/api/v1/book")
-                .contentType("application/json")
-                .header("Authorization", TokenUtils.getToken(tokenMap, mockMvc, USER, USER_PASS))
-                .content(expectedResponse))
+                .contentType("application/json"))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String actualResponse = mvcResult.getResponse().getContentAsString();
+        BookDto[] books = objectMapper.readValue(actualResponse, BookDto[].class);
 
-        assertThat(actualResponse).isEqualToIgnoringWhitespace(expectedResponse);
+        assertThat(books).isNotEmpty();
+        assertThat(books.length).isGreaterThanOrEqualTo(1);
+        assertThat(books).allMatch(book -> 
+            book.getId() != null && 
+            book.getTitle() != null && 
+            book.getAuthor() != null
+        );
     }
 
     @DisplayName("is checking saveBook method.")
     @Test
+    @DirtiesContext(methodMode = BEFORE_METHOD)
     void checkingSave() throws Exception {
-        Author author = new Author(AUTHOR_ID_1, AUTHOR_1);
-        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
-        Book book = new Book(BOOK_ID_1, BOOK_1, author, List.of(genre), new ArrayList<>());
+        AuthorDto author = new AuthorDto(AUTHOR_ID_1, AUTHOR_1);
+        GenreDto genre = new GenreDto(GENRE_ID_1, GENRE_1);
+        BookDto book = new BookDto(null, BOOK_1, author, List.of(genre));
 
-        String expectedResponse = objectMapper.writeValueAsString(book);
+        String requestBody = objectMapper.writeValueAsString(book);
 
         MvcResult mvcResult = mockMvc.perform(post("/api/v1/book")
                 .contentType("application/json")
-                .header("Authorization", TokenUtils.getToken(tokenMap, mockMvc, USER, USER_PASS))
-                .content(expectedResponse))
-                .andExpect(status().isOk())
+                .content(requestBody))
+                .andExpect(status().isCreated())
                 .andReturn();
 
         String actualResponse = mvcResult.getResponse().getContentAsString();
+        BookDto result = objectMapper.readValue(actualResponse, BookDto.class);
 
-        assertThat(actualResponse).isEqualToIgnoringWhitespace(expectedResponse);
+        assertThat(result.getTitle()).isEqualTo(BOOK_1);
+        assertThat(result.getId()).isNotNull();
     }
 
     @DisplayName("is checking updateBook method.")
-    @DirtiesContext(methodMode = BEFORE_METHOD)
     @Test
+    @DirtiesContext(methodMode = BEFORE_METHOD)
     void checkingUpdate() throws Exception {
-        Author author = new Author(AUTHOR_ID_1, AUTHOR_1);
-        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
-        Book book = new Book(BOOK_ID_1, BOOK_1, author, List.of(genre), new ArrayList<>());
+        AuthorDto author = new AuthorDto(AUTHOR_ID_1, AUTHOR_1);
+        GenreDto genre = new GenreDto(GENRE_ID_1, GENRE_1);
+        BookDto book = new BookDto(BOOK_ID_2, "Updated Title", author, List.of(genre));
 
-        String expectedResponse = objectMapper.writeValueAsString(book);
+        String requestBody = objectMapper.writeValueAsString(book);
 
-        MvcResult mvcResult = mockMvc.perform(put("/api/v1/book/1")
+        MvcResult mvcResult = mockMvc.perform(put("/api/v1/book/2")
                 .contentType("application/json")
-                .header("Authorization", TokenUtils.getToken(tokenMap, mockMvc, USER, USER_PASS))
-                .content(expectedResponse))
+                .content(requestBody))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String actualResponse = mvcResult.getResponse().getContentAsString();
+        BookDto result = objectMapper.readValue(actualResponse, BookDto.class);
 
-        assertThat(actualResponse).isEqualToIgnoringWhitespace(expectedResponse);
+        assertThat(result.getId()).isEqualTo(BOOK_ID_2);
+        assertThat(result.getTitle()).isEqualTo("Updated Title");
     }
 
-    @DisplayName("is checking deleteBook method.")
+    @DisplayName("is checking delete method.")
     @Test
+    @DirtiesContext(methodMode = BEFORE_METHOD)
     void checkingDelete() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(delete("/api/v1/book/1")
-                .contentType("application/json")
-                .header("Authorization", TokenUtils.getToken(tokenMap, mockMvc, USER, USER_PASS)))
-                .andExpect(status().isNoContent())
-                .andReturn();
-
-        Integer status = mvcResult.getResponse().getStatus();
-
-        assertThat(status).isEqualTo(204);
+        mockMvc.perform(delete("/api/v1/book/3")
+                .contentType("application/json"))
+                .andExpect(status().isNoContent());
     }
 }

@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.otus.vivlev.library.dto.AuthorDto;
 import ru.otus.vivlev.library.exeption.ResourceNotFoundException;
+import ru.otus.vivlev.library.kafka.event.AuthorEvent;
+import ru.otus.vivlev.library.kafka.producer.LibraryEventProducer;
 import ru.otus.vivlev.library.mapper.DtoMapper;
 import ru.otus.vivlev.library.service.AuthorService;
 
@@ -22,6 +24,7 @@ public class AuthorController {
 
     private final AuthorService authorService;
     private final DtoMapper mapper;
+    private final LibraryEventProducer eventProducer;
 
     @GetMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
     @Operation(summary = "Получить автора по ID")
@@ -43,7 +46,9 @@ public class AuthorController {
     public ResponseEntity<AuthorDto> createAuthor(@Valid @RequestBody AuthorDto authorDto) {
         authorDto.setId(null);
         var saved = authorService.save(mapper.toEntity(authorDto));
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toDto(saved));
+        var savedDto = mapper.toDto(saved);
+        eventProducer.sendAuthorEvent(new AuthorEvent(AuthorEvent.EventType.CREATED, savedDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedDto);
     }
 
     @PutMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
@@ -53,15 +58,19 @@ public class AuthorController {
                 .orElseThrow(() -> new ResourceNotFoundException("Автор с ID " + id + " не найден"));
         authorDto.setId(id);
         var updated = authorService.save(mapper.toEntity(authorDto));
-        return ResponseEntity.ok(mapper.toDto(updated));
+        var updatedDto = mapper.toDto(updated);
+        eventProducer.sendAuthorEvent(new AuthorEvent(AuthorEvent.EventType.UPDATED, updatedDto));
+        return ResponseEntity.ok(updatedDto);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить автора")
     public ResponseEntity<Void> deleteAuthor(@PathVariable Long id) {
-        authorService.getById(id)
+        var author = authorService.getById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Автор с ID " + id + " не найден"));
+        var authorDto = mapper.toDto(author);
         authorService.deleteById(id);
+        eventProducer.sendAuthorEvent(new AuthorEvent(AuthorEvent.EventType.DELETED, authorDto));
         return ResponseEntity.noContent().build();
     }
 }

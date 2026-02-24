@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.otus.vivlev.library.dto.CommentDto;
 import ru.otus.vivlev.library.exeption.ResourceNotFoundException;
+import ru.otus.vivlev.library.kafka.event.CommentEvent;
+import ru.otus.vivlev.library.kafka.producer.LibraryEventProducer;
 import ru.otus.vivlev.library.mapper.DtoMapper;
 import ru.otus.vivlev.library.service.BookService;
 import ru.otus.vivlev.library.service.CommentService;
@@ -24,6 +26,7 @@ public class CommentController {
     private final CommentService commentService;
     private final BookService bookService;
     private final DtoMapper mapper;
+    private final LibraryEventProducer eventProducer;
 
     @GetMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
     @Operation(summary = "Получить комментарий по ID")
@@ -49,7 +52,9 @@ public class CommentController {
                 .orElseThrow(() -> new ResourceNotFoundException("Книга с ID " + commentDto.getBookId() + " не найдена"));
         commentDto.setId(null);
         var saved = commentService.save(mapper.toEntity(commentDto, book));
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toDto(saved));
+        var savedDto = mapper.toDto(saved);
+        eventProducer.sendCommentEvent(new CommentEvent(CommentEvent.EventType.CREATED, savedDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedDto);
     }
 
     @PutMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
@@ -61,15 +66,19 @@ public class CommentController {
                 .orElseThrow(() -> new ResourceNotFoundException("Книга с ID " + commentDto.getBookId() + " не найдена"));
         commentDto.setId(id);
         var updated = commentService.save(mapper.toEntity(commentDto, book));
-        return ResponseEntity.ok(mapper.toDto(updated));
+        var updatedDto = mapper.toDto(updated);
+        eventProducer.sendCommentEvent(new CommentEvent(CommentEvent.EventType.UPDATED, updatedDto));
+        return ResponseEntity.ok(updatedDto);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить комментарий")
     public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
-        commentService.getById(id)
+        var comment = commentService.getById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Комментарий с ID " + id + " не найден"));
+        var commentDto = mapper.toDto(comment);
         commentService.deleteById(id);
+        eventProducer.sendCommentEvent(new CommentEvent(CommentEvent.EventType.DELETED, commentDto));
         return ResponseEntity.noContent().build();
     }
 }

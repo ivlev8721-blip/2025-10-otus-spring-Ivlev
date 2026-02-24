@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.otus.vivlev.library.dto.GenreDto;
 import ru.otus.vivlev.library.exeption.ResourceNotFoundException;
+import ru.otus.vivlev.library.kafka.event.GenreEvent;
+import ru.otus.vivlev.library.kafka.producer.LibraryEventProducer;
 import ru.otus.vivlev.library.mapper.DtoMapper;
 import ru.otus.vivlev.library.service.GenreService;
 
@@ -22,6 +24,7 @@ public class GenreController {
 
     private final GenreService genreService;
     private final DtoMapper mapper;
+    private final LibraryEventProducer eventProducer;
 
     @GetMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
     @Operation(summary = "Получить жанр по ID")
@@ -43,7 +46,9 @@ public class GenreController {
     public ResponseEntity<GenreDto> createGenre(@Valid @RequestBody GenreDto genreDto) {
         genreDto.setId(null);
         var saved = genreService.save(mapper.toEntity(genreDto));
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toDto(saved));
+        var savedDto = mapper.toDto(saved);
+        eventProducer.sendGenreEvent(new GenreEvent(GenreEvent.EventType.CREATED, savedDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedDto);
     }
 
     @PutMapping(value = "/{id}", produces = "application/json;charset=UTF-8")
@@ -53,15 +58,19 @@ public class GenreController {
                 .orElseThrow(() -> new ResourceNotFoundException("Жанр с ID " + id + " не найден"));
         genreDto.setId(id);
         var updated = genreService.save(mapper.toEntity(genreDto));
-        return ResponseEntity.ok(mapper.toDto(updated));
+        var updatedDto = mapper.toDto(updated);
+        eventProducer.sendGenreEvent(new GenreEvent(GenreEvent.EventType.UPDATED, updatedDto));
+        return ResponseEntity.ok(updatedDto);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Удалить жанр")
     public ResponseEntity<Void> deleteGenre(@PathVariable Long id) {
-        genreService.getById(id)
+        var genre = genreService.getById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Жанр с ID " + id + " не найден"));
+        var genreDto = mapper.toDto(genre);
         genreService.deleteById(id);
+        eventProducer.sendGenreEvent(new GenreEvent(GenreEvent.EventType.DELETED, genreDto));
         return ResponseEntity.noContent().build();
     }
 }

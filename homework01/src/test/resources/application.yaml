@@ -21,3 +21,21 @@ spring:
 jwt:
   secret: alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984
   sessionTime: 1200000000
+
+kafka:
+  bootstrap-servers: localhost:9092
+  consumer:
+    group-id: library-test-group
+    auto-offset-reset: earliest
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    properties:
+      spring.json.trusted.packages: "*"
+  producer:
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  topics:
+    book-events: book-events-test
+    author-events: author-events-test
+    genre-events: genre-events-test
+    comment-events: comment-events-test

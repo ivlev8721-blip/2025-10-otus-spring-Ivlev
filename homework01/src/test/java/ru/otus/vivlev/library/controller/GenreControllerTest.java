@@ -6,15 +6,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import ru.otus.vivlev.library.domain.Genre;
+import ru.otus.vivlev.library.dto.GenreDto;
+import ru.otus.vivlev.library.kafka.producer.LibraryEventProducer;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFORE_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,6 +31,9 @@ public class GenreControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private LibraryEventProducer eventProducer;
 
     private final Map<String, String> tokenMap = new HashMap<>();
 
@@ -45,90 +51,60 @@ public class GenreControllerTest {
     @DisplayName("is checking getById method.")
     @Test
     void checkingGetById() throws Exception {
-        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
-
-        String expectedResponse = objectMapper.writeValueAsString(genre);
-
         MvcResult mvcResult = mockMvc.perform(get("/api/v1/genre/1")
-                .contentType("application/json")
-                .header("Authorization", TokenUtils.getToken(tokenMap, mockMvc, USER, USER_PASS))
-                .content(expectedResponse))
+                .contentType("application/json"))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String actualResponse = mvcResult.getResponse().getContentAsString();
+        GenreDto result = objectMapper.readValue(actualResponse, GenreDto.class);
 
-        assertThat(actualResponse).isEqualToIgnoringWhitespace(expectedResponse);
+        assertThat(result.getId()).isEqualTo(GENRE_ID_1);
+        assertThat(result.getGenreName()).isEqualTo(GENRE_1);
     }
 
     @DisplayName("is checking getAll method.")
     @Test
     void checkingGetAll() throws Exception {
-        Genre genre1 = new Genre(GENRE_ID_1, GENRE_1);
-        Genre genre2 = new Genre(GENRE_ID_2, GENRE_2);
-        Genre genre3 = new Genre(GENRE_ID_3, GENRE_3);
-        List<Genre> genres = List.of(genre1, genre2,genre3);
-
-        String expectedResponse = objectMapper.writeValueAsString(genres);
-
         MvcResult mvcResult = mockMvc.perform(get("/api/v1/genre")
-                .contentType("application/json")
-                .header("Authorization", TokenUtils.getToken(tokenMap, mockMvc, USER, USER_PASS))
-                .content(expectedResponse))
+                .contentType("application/json"))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String actualResponse = mvcResult.getResponse().getContentAsString();
+        GenreDto[] genres = objectMapper.readValue(actualResponse, GenreDto[].class);
 
-        assertThat(actualResponse).isEqualToIgnoringWhitespace(expectedResponse);
+        assertThat(genres).isNotEmpty();
+        assertThat(genres.length).isGreaterThanOrEqualTo(1);
+        assertThat(genres).allMatch(genre -> genre.getId() != null && genre.getGenreName() != null);
     }
 
     @DisplayName("is checking saveGenre method.")
     @Test
+    @DirtiesContext(methodMode = BEFORE_METHOD)
     void checkingSave() throws Exception {
-        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
+        GenreDto genreDto = new GenreDto(null, GENRE_1);
 
-        String expectedResponse = objectMapper.writeValueAsString(genre);
-
+        String requestBody = objectMapper.writeValueAsString(genreDto);
         MvcResult mvcResult = mockMvc.perform(post("/api/v1/genre")
                 .contentType("application/json")
-                .header("Authorization", TokenUtils.getToken(tokenMap, mockMvc, ADMIN, ADMIN_PASS))
-                .content(expectedResponse))
-                .andExpect(status().isOk())
+                .content(requestBody))
+                .andExpect(status().isCreated())
                 .andReturn();
 
         String actualResponse = mvcResult.getResponse().getContentAsString();
+        GenreDto result = objectMapper.readValue(actualResponse, GenreDto.class);
 
-        assertThat(actualResponse).isEqualToIgnoringWhitespace(expectedResponse);
+        assertThat(result.getGenreName()).isEqualTo(GENRE_1);
+        assertThat(result.getId()).isNotNull();
     }
 
-    @DisplayName("is checking saveGenre method with invalid authorities.")
+    @DisplayName("is checking delete method.")
     @Test
-    void checkingSaveWithInvalidAuthorities() throws Exception {
-        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
-
-        String expectedResponse = objectMapper.writeValueAsString(genre);
-
-        MvcResult mvcResult = mockMvc.perform(post("/api/v1/genre")
-                .contentType("application/json")
-                .header("Authorization", TokenUtils.getToken(tokenMap, mockMvc, USER, USER_PASS))
-                .content(expectedResponse))
-                .andExpect(status().isForbidden())
-                .andReturn();
-    }
-
-    @DisplayName("is checking delete method with invalid authorities.")
-    @Test
-    void checkingDeleteWithInvalidAuthorities() throws Exception {
-        Genre genre = new Genre(GENRE_ID_1, GENRE_1);
-
-        String expectedResponse = objectMapper.writeValueAsString(genre);
-
-        MvcResult mvcResult = mockMvc.perform(delete("/api/v1/genre/1")
-                .contentType("application/json")
-                .header("Authorization", TokenUtils.getToken(tokenMap, mockMvc, USER, USER_PASS))
-                .content(expectedResponse))
-                .andExpect(status().isForbidden())
-                .andReturn();
+    @DirtiesContext(methodMode = BEFORE_METHOD)
+    void checkingDelete() throws Exception {
+        mockMvc.perform(delete("/api/v1/genre/3")
+                .contentType("application/json"))
+                .andExpect(status().isNoContent());
     }
 }

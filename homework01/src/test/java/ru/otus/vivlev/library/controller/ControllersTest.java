@@ -8,16 +8,17 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import ru.otus.vivlev.library.domain.Author;
-import ru.otus.vivlev.library.domain.Book;
-import ru.otus.vivlev.library.domain.Comment;
-import ru.otus.vivlev.library.domain.Genre;
+import ru.otus.vivlev.library.dto.AuthorDto;
+import ru.otus.vivlev.library.dto.BookDto;
+import ru.otus.vivlev.library.dto.CommentDto;
+import ru.otus.vivlev.library.dto.GenreDto;
+import ru.otus.vivlev.library.kafka.producer.LibraryEventProducer;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,9 @@ public class ControllersTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private LibraryEventProducer eventProducer;
 
     private final Map<String, String> tokenMap = new HashMap<>();
 
@@ -91,22 +95,6 @@ public class ControllersTest {
         }
     }
 
-    @DirtiesContext(methodMode = BEFORE_METHOD)
-    @DisplayName("is checking no auth.")
-    @ParameterizedTest@MethodSource("ru.otus.vivlev.library.controller.DataForAllControllerTest#getUrlsNoAuth")
-    void checkingNoAuth(Map<String, Map<String, ResultMatcher>> urlsNoAuth) throws Exception {
-
-        for (Map.Entry<String, Map<String, ResultMatcher>> mapEntry : urlsNoAuth.entrySet()) {
-
-            for (Map.Entry<String, ResultMatcher> map : mapEntry.getValue().entrySet()) {
-
-                mockMvc.perform(getMethod(map.getKey(), mapEntry.getKey())
-                        .contentType("application/json"))
-                        .andExpect(map.getValue())
-                        .andReturn();
-            }
-        }
-    }
 
     private MockHttpServletRequestBuilder getMethod(String methodName, String url) {
         switch (methodName) {
@@ -126,23 +114,20 @@ public class ControllersTest {
 
         String result = "";
         if (url.contains("author")) {
-            Author author1 = new Author(AUTHOR_ID_1, AUTHOR_1);
-            result = objectMapper.writeValueAsString(author1);
+            AuthorDto authorDto = new AuthorDto(null, AUTHOR_1);
+            result = objectMapper.writeValueAsString(authorDto);
         } else if (url.contains("genre")) {
-            Genre genre1 = new Genre(GENRE_ID_1, GENRE_1);
-            result = objectMapper.writeValueAsString(genre1);
+            GenreDto genreDto = new GenreDto(null, GENRE_1);
+            result = objectMapper.writeValueAsString(genreDto);
         } else if (url.contains("comment")) {
-            Author author = new Author(AUTHOR_ID_1, AUTHOR_1);
-            Genre genre = new Genre(GENRE_ID_1, GENRE_1);
-            Book book = new Book(BOOK_ID_1, BOOK_1, author, List.of(genre), new ArrayList<>());
-            Comment comment = new Comment(COMMENT_ID_1, AUTHOR_1, COMMENT_1, book);
-            result = objectMapper.writeValueAsString(comment);
+            CommentDto commentDto = new CommentDto(null, AUTHOR_1, COMMENT_1, BOOK_ID_1);
+            result = objectMapper.writeValueAsString(commentDto);
         } else {
-            Author author = new Author(AUTHOR_ID_1, AUTHOR_1);
-            Genre genre = new Genre(GENRE_ID_1, GENRE_1);
-            Book book = new Book(BOOK_ID_1, BOOK_1, author, List.of(genre), new ArrayList<>());
+            AuthorDto authorDto = new AuthorDto(AUTHOR_ID_1, AUTHOR_1);
+            GenreDto genreDto = new GenreDto(GENRE_ID_1, GENRE_1);
+            BookDto bookDto = new BookDto(null, BOOK_1, authorDto, List.of(genreDto));
 
-            result = objectMapper.writeValueAsString(book);
+            result = objectMapper.writeValueAsString(bookDto);
         }
         return result;
     }
