@@ -39,3 +39,13 @@ kafka:
     author-events: author-events-test
     genre-events: genre-events-test
     comment-events: comment-events-test
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 10000
+      circuitBreaker:
+        enabled: false
