@@ -1,0 +1,51 @@
+spring:
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:librarydb
+    username: sa
+    password: sa
+    schema: classpath*:schema.sql
+    data: classpath*:data-test.sql
+    initialization-mode: always
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+
+jwt:
+  secret: alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984
+  sessionTime: 1200000000
+
+kafka:
+  bootstrap-servers: localhost:9092
+  consumer:
+    group-id: library-test-group
+    auto-offset-reset: earliest
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    properties:
+      spring.json.trusted.packages: "*"
+  producer:
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  topics:
+    book-events: book-events-test
+    author-events: author-events-test
+    genre-events: genre-events-test
+    comment-events: comment-events-test
+
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 10000
+      circuitBreaker:
+        enabled: false
