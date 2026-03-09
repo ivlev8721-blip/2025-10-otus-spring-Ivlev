@@ -16,6 +16,6 @@ public class Genre {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "genre_name")
-    private String genreName;
+    @Column(name = "name")
+    private String name;
 }

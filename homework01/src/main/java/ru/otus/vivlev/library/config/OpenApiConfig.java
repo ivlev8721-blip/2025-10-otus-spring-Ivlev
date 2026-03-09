@@ -16,12 +16,14 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Library Management API")
+                        .title("VinylLib API by V.I. Ivlev")
                         .version("1.0")
-                        .description("REST API для управления библиотекой книг")
+                        .description("REST API для управления коллекцией виниловых пластинок. " +
+                                "Включает управление альбомами, жанрами, отзывами, пользовательскими коллекциями и вишлистами. " +
+                                "Поддерживает импорт/экспорт данных в CSV формате.")
                         .contact(new Contact()
-                                .name("Library API Support")
-                                .email("support@library.ru")))
+                                .name("VinylLib Support")
+                                .email("vivlev8721@mail.ru")))
                 .addSecurityItem(new SecurityRequirement().addList("bearer-jwt"))
                 .components(new Components()
                         .addSecuritySchemes("bearer-jwt", new SecurityScheme()

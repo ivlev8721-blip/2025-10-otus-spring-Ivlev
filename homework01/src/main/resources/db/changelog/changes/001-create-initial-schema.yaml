@@ -1,0 +1,269 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-users-table
+      author: vivlev
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: login
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password_hash
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+
+  - changeSet:
+      id: 001-create-authority-table
+      author: vivlev
+      changes:
+        - createTable:
+            tableName: authority
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-user-authority-table
+      author: vivlev
+      changes:
+        - createTable:
+            tableName: user_authority
+            columns:
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: authority_name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: user_authority
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_user_authority_user
+        - addForeignKeyConstraint:
+            baseTableName: user_authority
+            baseColumnNames: authority_name
+            referencedTableName: authority
+            referencedColumnNames: name
+            constraintName: fk_user_authority_authority
+
+  - changeSet:
+      id: 001-create-genre-table
+      author: vivlev
+      changes:
+        - createTable:
+            tableName: genre
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+  - changeSet:
+      id: 001-create-album-table
+      author: vivlev
+      changes:
+        - createTable:
+            tableName: album
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: artist
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: genre_id
+                  type: bigint
+              - column:
+                  name: release_year
+                  type: int
+              - column:
+                  name: cover_image_url
+                  type: varchar(500)
+        - addForeignKeyConstraint:
+            baseTableName: album
+            baseColumnNames: genre_id
+            referencedTableName: genre
+            referencedColumnNames: id
+            constraintName: fk_album_genre
+
+  - changeSet:
+      id: 001-create-track-table
+      author: vivlev
+      changes:
+        - createTable:
+            tableName: track
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: album_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: duration
+                  type: int
+              - column:
+                  name: file_path
+                  type: varchar(500)
+        - addForeignKeyConstraint:
+            baseTableName: track
+            baseColumnNames: album_id
+            referencedTableName: album
+            referencedColumnNames: id
+            constraintName: fk_track_album
+            onDelete: CASCADE
+
+  - changeSet:
+      id: 001-create-user-collection-table
+      author: vivlev
+      changes:
+        - createTable:
+            tableName: user_collection
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: album_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: added_date
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: is_wishlist
+                  type: boolean
+                  defaultValueBoolean: false
+        - addForeignKeyConstraint:
+            baseTableName: user_collection
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_user_collection_user
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: user_collection
+            baseColumnNames: album_id
+            referencedTableName: album
+            referencedColumnNames: id
+            constraintName: fk_user_collection_album
+            onDelete: CASCADE
+
+  - changeSet:
+      id: 001-create-review-table
+      author: vivlev
+      changes:
+        - createTable:
+            tableName: review
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: album_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rating
+                  type: int
+              - column:
+                  name: comment
+                  type: varchar(2000)
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+        - addForeignKeyConstraint:
+            baseTableName: review
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_review_user
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: review
+            baseColumnNames: album_id
+            referencedTableName: album
+            referencedColumnNames: id
+            constraintName: fk_review_album
+            onDelete: CASCADE

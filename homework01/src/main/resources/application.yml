@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: vinyl-library
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/vinyldb}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+
+  shell:
+    interactive:
+      enabled: false
+
+jwt:
+  secret: ${JWT_SECRET:alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984}
+  sessionTime: ${JWT_SESSION_TIME:1200000000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    ru.otus.vivlev: DEBUG
+  file:
+    name: ${LOG_FILE:/logs/vinyl-library.log}
+
+server:
+  port: ${SERVER_PORT:8080}

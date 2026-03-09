@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VinylLib - Виниловая библиотека</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .album-card { transition: transform 0.2s; cursor: pointer; }
+        .album-card:hover { transform: translateY(-5px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .album-cover { width: 100%; height: 250px; object-fit: cover; }
+        .navbar-brand { font-weight: bold; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/"><i class="fas fa-record-vinyl"></i> VinylLib</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Главная</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/catalog">Каталог</a></li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <a class="nav-link" href="/my-collection">Моя коллекция</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" href="/admin">Админ</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" href="/login">Вход</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-link nav-link">Выход</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">Добро пожаловать в VinylLib by V.I. Ivlev!</h1>
+            <p class="lead">Онлайн-каталог коллекционера виниловых пластинок</p>
+            <hr class="my-4">
+            <p>Исследуйте коллекцию, добавляйте альбомы в вишлист, слушайте треки и делитесь отзывами</p>
+            <a class="btn btn-primary btn-lg" href="/catalog" role="button">Перейти к каталогу</a>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h2>Популярные альбомы</h2>
+                <div class="input-group mb-3">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Поиск по названию или исполнителю...">
+                    <button class="btn btn-outline-secondary" type="button" onclick="searchAlbums()">
+                        <i class="fas fa-search"></i> Поиск
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" id="albumsContainer">
+            <div th:each="album : ${albums.content}" class="col-md-3 mb-4">
+                <div class="card album-card" th:onclick="'location.href=\'/album/' + ${album.id} + '\''">
+                    <img th:src="${album.coverImageUrl}" class="card-img-top album-cover" 
+                         th:alt="${album.title}" onerror="this.src='/images/default-album.jpg'">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${album.title}">Album Title</h5>
+                        <p class="card-text text-muted" th:text="${album.artist}">Artist</p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <span th:text="${album.genre?.name}">Genre</span> • 
+                                <span th:text="${album.releaseYear}">Year</span>
+                            </small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav th:if="${albums.totalPages > 1}">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${albums.first} ? 'disabled'">
+                    <a class="page-link" th:href="@{/(page=${albums.number - 1})}">Предыдущая</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, albums.totalPages - 1)}"
+                    th:classappend="${i == albums.number} ? 'active'">
+                    <a class="page-link" th:href="@{/(page=${i})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${albums.last} ? 'disabled'">
+                    <a class="page-link" th:href="@{/(page=${albums.number + 1})}">Следующая</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script>
+        function searchAlbums() {
+            const query = document.getElementById('searchInput').value;
+            if (query.trim()) {
+                fetch(`/api/albums/search?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const container = document.getElementById('albumsContainer');
+                        container.innerHTML = '';
+                        data.content.forEach(album => {
+                            container.innerHTML += `
+                                <div class="col-md-3 mb-4">
+                                    <div class="card album-card" onclick="location.href='/album/${album.id}'">
+                                        <img src="${album.coverImageUrl}" class="card-img-top album-cover" 
+                                             alt="${album.title}" onerror="this.src='/images/default-album.jpg'">
+                                        <div class="card-body">
+                                            <h5 class="card-title">${album.title}</h5>
+                                            <p class="card-text text-muted">${album.artist}</p>
+                                            <p class="card-text">
+                                                <small class="text-muted">
+                                                    ${album.genre?.name || ''} • ${album.releaseYear || ''}
+                                                </small>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    });
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchAlbums();
+            }
+        });
+    </script>
+</body>
+</html>

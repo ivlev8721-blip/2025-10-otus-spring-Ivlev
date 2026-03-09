@@ -10,10 +10,10 @@ RUN mvn dependency:go-offline -B
 
 # Копируем исходный код и собираем приложение
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package -Dmaven.test.skip=true
 
 # Этап 2: Создание финального образа
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:11-jre-jammy
 WORKDIR /app
 
 # Создаем непривилегированного пользователя

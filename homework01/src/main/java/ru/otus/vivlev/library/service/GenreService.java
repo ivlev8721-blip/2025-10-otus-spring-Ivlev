@@ -11,6 +11,8 @@ public interface GenreService {
     Optional<Genre> getByName(String name);
 
     List<Genre> getAll();
+    
+    List<Genre> getAllGenres();
 
     Genre save(Genre genre);
 

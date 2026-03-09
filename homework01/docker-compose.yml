@@ -1,58 +1,69 @@
 version: '3.8'
 
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.4.0
-    container_name: zookeeper
+  postgres:
+    image: postgres:14-alpine
+    container_name: vinyl-postgres
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+      POSTGRES_DB: vinyldb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "2181:2181"
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     networks:
-      - library-network
+      - vinyl-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  kafka:
-    image: confluentinc/cp-kafka:7.4.0
-    container_name: kafka
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: vinyl-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@vinyl.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
     depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      - postgres
     networks:
-      - library-network
+      - vinyl-network
 
-  library-app:
+  vinyl-app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: library-spring-app
+    container_name: vinyl-spring-app
     depends_on:
-      - kafka
+      postgres:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=default
       - JAVA_OPTS=-Xmx512m -Xms256m
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - DB_URL=jdbc:postgresql://postgres:5432/vinyldb
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - JWT_SECRET=alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984alexander1984
+      - SERVER_PORT=8080
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     restart: unless-stopped
     networks:
-      - library-network
+      - vinyl-network
+
+volumes:
+  postgres-data:
 
 networks:
-  library-network:
+  vinyl-network:
     driver: bridge
