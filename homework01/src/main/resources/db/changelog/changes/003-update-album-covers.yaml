@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-update-album-cover-urls2
+      author: vivlev
+      changes:
+        - update:
+            tableName: album
+            where: title = 'Dark Side of the Moon'
+            columns:
+              - column:
+                  name: cover_image_url
+                  value: https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png
+        - update:
+            tableName: album
+            where: title = 'Kind of Blue'
+            columns:
+              - column:
+                  name: cover_image_url
+                  value: https://upload.wikimedia.org/wikipedia/ru/c/c8/Miles_Davis_-_Kind_Of_Blue.jpeg
+        - update:
+            tableName: album
+            where: title = 'Abbey Road'
+            columns:
+              - column:
+                  name: cover_image_url
+                  value: https://avatars.mds.yandex.net/get-entity_search/1938771/1245440734/S600xU

@@ -1,0 +1,222 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-insert-authorities
+      author: vivlev
+      changes:
+        - insert:
+            tableName: authority
+            columns:
+              - column:
+                  name: name
+                  value: ROLE_USER
+        - insert:
+            tableName: authority
+            columns:
+              - column:
+                  name: name
+                  value: ROLE_ADMIN
+
+  - changeSet:
+      id: 002-insert-users
+      author: vivlev
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: login
+                  value: admin
+              - column:
+                  name: password_hash
+                  value: $2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG
+              - column:
+                  name: is_active
+                  valueBoolean: true
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: login
+                  value: user
+              - column:
+                  name: password_hash
+                  value: $2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG
+              - column:
+                  name: is_active
+                  valueBoolean: true
+
+  - changeSet:
+      id: 002-insert-user-authorities
+      author: vivlev
+      changes:
+        - insert:
+            tableName: user_authority
+            columns:
+              - column:
+                  name: user_id
+                  valueNumeric: 1
+              - column:
+                  name: authority_name
+                  value: ROLE_ADMIN
+        - insert:
+            tableName: user_authority
+            columns:
+              - column:
+                  name: user_id
+                  valueNumeric: 1
+              - column:
+                  name: authority_name
+                  value: ROLE_USER
+        - insert:
+            tableName: user_authority
+            columns:
+              - column:
+                  name: user_id
+                  valueNumeric: 2
+              - column:
+                  name: authority_name
+                  value: ROLE_USER
+
+  - changeSet:
+      id: 002-insert-genres
+      author: vivlev
+      changes:
+        - insert:
+            tableName: genre
+            columns:
+              - column:
+                  name: name
+                  value: Rock
+        - insert:
+            tableName: genre
+            columns:
+              - column:
+                  name: name
+                  value: Jazz
+        - insert:
+            tableName: genre
+            columns:
+              - column:
+                  name: name
+                  value: Classical
+        - insert:
+            tableName: genre
+            columns:
+              - column:
+                  name: name
+                  value: Blues
+        - insert:
+            tableName: genre
+            columns:
+              - column:
+                  name: name
+                  value: Electronic
+
+  - changeSet:
+      id: 002-insert-albums
+      author: vivlev
+      changes:
+        - insert:
+            tableName: album
+            columns:
+              - column:
+                  name: title
+                  value: Dark Side of the Moon
+              - column:
+                  name: artist
+                  value: Pink Floyd
+              - column:
+                  name: genre_id
+                  valueNumeric: 1
+              - column:
+                  name: release_year
+                  valueNumeric: 1973
+              - column:
+                  name: cover_image_url
+                  value: /images/dark-side.jpg
+        - insert:
+            tableName: album
+            columns:
+              - column:
+                  name: title
+                  value: Kind of Blue
+              - column:
+                  name: artist
+                  value: Miles Davis
+              - column:
+                  name: genre_id
+                  valueNumeric: 2
+              - column:
+                  name: release_year
+                  valueNumeric: 1959
+              - column:
+                  name: cover_image_url
+                  value: /images/kind-of-blue.jpg
+        - insert:
+            tableName: album
+            columns:
+              - column:
+                  name: title
+                  value: Abbey Road
+              - column:
+                  name: artist
+                  value: The Beatles
+              - column:
+                  name: genre_id
+                  valueNumeric: 1
+              - column:
+                  name: release_year
+                  valueNumeric: 1969
+              - column:
+                  name: cover_image_url
+                  value: /images/abbey-road.jpg
+
+  - changeSet:
+      id: 002-insert-tracks
+      author: vivlev
+      changes:
+        - insert:
+            tableName: track
+            columns:
+              - column:
+                  name: album_id
+                  valueNumeric: 1
+              - column:
+                  name: title
+                  value: Speak to Me
+              - column:
+                  name: duration
+                  valueNumeric: 90
+              - column:
+                  name: file_path
+                  value: /tracks/dark-side-01.mp3
+        - insert:
+            tableName: track
+            columns:
+              - column:
+                  name: album_id
+                  valueNumeric: 1
+              - column:
+                  name: title
+                  value: Time
+              - column:
+                  name: duration
+                  valueNumeric: 413
+              - column:
+                  name: file_path
+                  value: /tracks/dark-side-02.mp3
+        - insert:
+            tableName: track
+            columns:
+              - column:
+                  name: album_id
+                  valueNumeric: 2
+              - column:
+                  name: title
+                  value: So What
+              - column:
+                  name: duration
+                  valueNumeric: 563
+              - column:
+                  name: file_path
+                  value: /tracks/kind-of-blue-01.mp3

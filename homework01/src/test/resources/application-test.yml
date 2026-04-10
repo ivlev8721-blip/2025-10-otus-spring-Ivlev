@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: vinyl-library-test
+  
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+    initialization-mode: never 
+  
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  
+  liquibase:
+    enabled: false
+  
+  batch:
+    job:
+      enabled: false
+  
+  shell:
+    interactive:
+      enabled: false
+  
+  cloud:
+    config:
+      enabled: false
+
+logging:
+  level:
+    root: WARN
+    ru.otus.vivlev: INFO
+    org.springframework.web.socket: OFF
+    org.springframework.messaging: OFF
