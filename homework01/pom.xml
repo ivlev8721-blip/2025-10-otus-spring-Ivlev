@@ -169,32 +169,5 @@
 		</dependencies>
 	</dependencyManagement>
 
-	<repositories>
-		<repository>
-			<id>diasoft-repo</id>
-			<name>Diasoft Corporate Repository</name>
-			<url>http://repolib-main.diasoft.ru:8081/repository/soap-ui</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
-
-	<pluginRepositories>
-		<pluginRepository>
-			<id>diasoft-repo</id>
-			<name>Diasoft Corporate Repository</name>
-			<url>http://repolib-main.diasoft.ru:8081/repository/soap-ui</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
 
 </project>

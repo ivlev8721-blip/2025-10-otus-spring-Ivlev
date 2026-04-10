@@ -33,8 +33,6 @@ public class BatchConfiguration {
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
     private final DataSource dataSource;
-    private final AlbumRepository albumRepository;
-    private final GenreRepository genreRepository;
 
     @Bean
     public Job importAlbumsJob(Step importAlbumsStep) {
@@ -71,7 +69,8 @@ public class BatchConfiguration {
     }
 
     @Bean
-    public ItemProcessor<AlbumCsvDto, Album> albumProcessor() {
+    public ItemProcessor<AlbumCsvDto, Album> albumProcessor(AlbumRepository albumRepository,
+                                                             GenreRepository genreRepository) {
         return new AlbumItemProcessor(albumRepository, genreRepository);
     }
 
